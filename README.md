@@ -25,7 +25,7 @@
 
 3. アプリケーションの起動:
    ```sh
-   docker compose up
+   docker compose watch
    ```
 
 4. ブラウザで以下のURLにアクセス:
@@ -48,7 +48,7 @@
 ## プロジェクト構成
 ```
 hotpepper-restaurant-search/
-├── app/              # Next.jsアプリケーション
+├── frontend/              # Next.jsアプリケーション
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .dockerignore
@@ -56,9 +56,3 @@ hotpepper-restaurant-search/
 ├── .env.example      # 環境変数のサンプルファイル
 └── README.md
 ```
-
-## メモ
-1. 新しいパッケージをインストールする場合:
-   ```
-   docker compose run --rm app npm install パッケージ名
-   ```

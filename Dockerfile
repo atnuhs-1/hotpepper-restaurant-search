@@ -9,6 +9,9 @@ RUN npm install
 # 開発用設定
 ENV NODE_ENV=development
 
+# すべてのソースコードをコピー（初期ファイル配置）
+COPY ./frontend .
+
 # ホットリロード用ポート
 EXPOSE 3000
 

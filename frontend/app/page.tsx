@@ -1,17 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Restaurant, SearchResults } from "../types/restaurant";
 import Link from "next/link";
 import { FiMapPin, FiTag, FiChevronRight, FiSearch } from "react-icons/fi";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SearchPage() {
-  // ステート管理部分はそのまま
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // URLからページ番号を取得（ない場合は1をデフォルト値とする）
+  const pageFromUrl = searchParams.get("page") ? parseInt(searchParams.get("page") as string) : 1;
+  
+  // セッションストレージから位置情報を取得する関数
+  const getLocationFromSessionStorage = () => {
+    if (typeof window !== 'undefined') {
+      const savedLocation = sessionStorage.getItem('userLocation');
+      if (savedLocation) {
+        try {
+          return JSON.parse(savedLocation);
+        } catch (e) {
+          console.error('Stored location parsing error:', e);
+        }
+      }
+    }
+    return { lat: null, lng: null };
+  };
+  
   const [location, setLocation] = useState<{
     lat: number | null;
     lng: number | null;
-  }>({ lat: null, lng: null });
-  const [radius, setRadius] = useState<string>("3");
+  }>(getLocationFromSessionStorage());
+  
+  const [radius, setRadius] = useState<string>(searchParams.get("radius") || "3");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -20,8 +42,30 @@ export default function SearchPage() {
     returned: number;
     start: number;
   } | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const perPage = 20; // 1ページあたりの表示件数
+
+  // クエリパラメータを更新する関数（位置情報は含めない）
+  const updateQueryParams = (page: number, newRadius?: string) => {
+    // 現在のURLパラメータを取得
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // パラメータ更新
+    params.set("page", page.toString());
+    if (newRadius) params.set("radius", newRadius);
+    
+    // URLを更新（ページ遷移せずにURLのみ変更）
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  // 位置情報が変更されたらセッションストレージに保存
+  useEffect(() => {
+    if (location.lat && location.lng) {
+      sessionStorage.setItem('userLocation', JSON.stringify({
+        lat: location.lat,
+        lng: location.lng
+      }));
+    }
+  }, [location]);
 
   // 現在地を取得
   const getCurrentLocation = () => {
@@ -48,7 +92,7 @@ export default function SearchPage() {
   };
 
   // 検索を実行
-  const searchRestaurants = async (page: number = 1) => {
+  const searchRestaurants = async (page: number = pageFromUrl) => {
     if (!location.lat || !location.lng) {
       setError("位置情報を先に取得してください");
       return;
@@ -56,7 +100,9 @@ export default function SearchPage() {
 
     setIsLoading(true);
     setError(null);
-    setCurrentPage(page);
+    
+    // URLのページ番号を更新
+    updateQueryParams(page, radius);
 
     // 開始位置を計算
     const start = (page - 1) * perPage + 1;
@@ -90,6 +136,12 @@ export default function SearchPage() {
     e.preventDefault();
     searchRestaurants(1); // 検索時は1ページ目から表示
   };
+  
+  // 検索範囲変更時のハンドラ
+  const handleRadiusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRadius = e.target.value;
+    setRadius(newRadius);
+  };
 
   const totalPages = resultsInfo
     ? Math.ceil(resultsInfo.available / perPage)
@@ -108,15 +160,15 @@ export default function SearchPage() {
     } else {
       const middleOffset = Math.floor(maxVisiblePages / 2);
 
-      if (currentPage <= middleOffset + 1) {
+      if (pageFromUrl <= middleOffset + 1) {
         startPage = 1;
         endPage = maxVisiblePages;
-      } else if (currentPage >= totalPages - middleOffset) {
+      } else if (pageFromUrl >= totalPages - middleOffset) {
         startPage = totalPages - maxVisiblePages + 1;
         endPage = totalPages;
       } else {
-        startPage = currentPage - middleOffset;
-        endPage = currentPage + middleOffset;
+        startPage = pageFromUrl - middleOffset;
+        endPage = pageFromUrl + middleOffset;
       }
     }
 
@@ -125,6 +177,22 @@ export default function SearchPage() {
       (_, i) => startPage + i
     );
   };
+
+  // コンポーネントがマウントされたときとURLのページ番号が変わったときに検索を実行
+  useEffect(() => {
+    // 位置情報がある場合のみ検索を実行
+    if (location.lat && location.lng) {
+      searchRestaurants(pageFromUrl);
+    }
+  }, [pageFromUrl, location]); // URLのページが変わったら、または位置情報が設定されたら再検索
+
+  // コンポーネントがマウントされた時にセッションストレージから位置情報を取得
+  useEffect(() => {
+    const storedLocation = getLocationFromSessionStorage();
+    if (storedLocation.lat && storedLocation.lng) {
+      setLocation(storedLocation);
+    }
+  }, []);
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
@@ -182,7 +250,7 @@ export default function SearchPage() {
                 <select
                   id="radius"
                   value={radius}
-                  onChange={(e) => setRadius(e.target.value)}
+                  onChange={handleRadiusChange}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 text-black transition-all"
                   disabled={isLoading}
                 >
@@ -267,7 +335,7 @@ export default function SearchPage() {
                   {/* コンテンツ部分 */}
                   <div className="p-3 flex-grow">
                     <h3
-                      className="font-semibold text-base  text-black mb-1 truncate"
+                      className="font-semibold text-base text-black mb-1 truncate"
                       title={restaurant.name}
                     >
                       {restaurant.name}
@@ -309,9 +377,9 @@ export default function SearchPage() {
               <div className="flex justify-center mt-8 mb-4">
                 <div className="inline-flex rounded-md shadow-sm">
                   {/* 前へボタン */}
-                  {currentPage > 1 && (
+                  {pageFromUrl > 1 && (
                     <button
-                      onClick={() => searchRestaurants(currentPage - 1)}
+                      onClick={() => searchRestaurants(pageFromUrl - 1)}
                       disabled={isLoading}
                       className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                     >
@@ -324,9 +392,9 @@ export default function SearchPage() {
                     <button
                       key={pageNum}
                       onClick={() => searchRestaurants(pageNum)}
-                      disabled={isLoading || pageNum === currentPage}
+                      disabled={isLoading || pageNum === pageFromUrl}
                       className={`relative inline-flex items-center px-4 py-2 border ${
-                        pageNum === currentPage
+                        pageNum === pageFromUrl
                           ? "z-10 bg-indigo-600 text-white border-indigo-600"
                           : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                       } text-sm font-medium`}
@@ -336,9 +404,9 @@ export default function SearchPage() {
                   ))}
 
                   {/* 次へボタン */}
-                  {currentPage < totalPages && (
+                  {pageFromUrl < totalPages && (
                     <button
-                      onClick={() => searchRestaurants(currentPage + 1)}
+                      onClick={() => searchRestaurants(pageFromUrl + 1)}
                       disabled={isLoading}
                       className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Restaurant, SearchResults } from "./types/restaurant";
 import { useRouter, useSearchParams } from "next/navigation";
 import LocationFinder from "./components/restaurants/LocationFinder";
@@ -9,6 +9,7 @@ import LoadingIndicator from "./components/ui/LoadingIndicator";
 import RestaurantCard from "./components/restaurants/RestaurantCard";
 import Pagination from "./components/restaurants/Pagination";
 import ErrorMessage from "./components/ui/ErrorMessage";
+import { useGeolocation } from "./hooks/useGeolocation";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -19,25 +20,12 @@ export default function SearchPage() {
     ? parseInt(searchParams.get("page") as string)
     : 1;
 
-  // セッションストレージから位置情報を取得する関数
-  const getLocationFromSessionStorage = () => {
-    if (typeof window !== "undefined") {
-      const savedLocation = sessionStorage.getItem("userLocation");
-      if (savedLocation) {
-        try {
-          return JSON.parse(savedLocation);
-        } catch (e) {
-          console.error("Stored location parsing error:", e);
-        }
-      }
-    }
-    return { lat: null, lng: null };
-  };
-
-  const [location, setLocation] = useState<{
-    lat: number | null;
-    lng: number | null;
-  }>(getLocationFromSessionStorage());
+  const {
+    location,
+    isLoading: isLocationLoading,
+    error: locationError,
+    getCurrentLocation,
+  } = useGeolocation();
 
   const [radius, setRadius] = useState<string>(
     searchParams.get("radius") || "3"
@@ -53,7 +41,7 @@ export default function SearchPage() {
   const perPage = 20; // 1ページあたりの表示件数
 
   // クエリパラメータを更新する関数（位置情報は含めない）
-  const updateQueryParams = (page: number, newRadius?: string) => {
+  const updateQueryParams = useCallback((page: number, newRadius?: string) => {
     // 現在のURLパラメータを取得
     const params = new URLSearchParams(searchParams.toString());
 
@@ -63,47 +51,10 @@ export default function SearchPage() {
 
     // URLを更新（ページ遷移せずにURLのみ変更）
     router.push(`?${params.toString()}`, { scroll: false });
-  };
-
-  // 位置情報が変更されたらセッションストレージに保存
-  useEffect(() => {
-    if (location.lat && location.lng) {
-      sessionStorage.setItem(
-        "userLocation",
-        JSON.stringify({
-          lat: location.lat,
-          lng: location.lng,
-        })
-      );
-    }
-  }, [location]);
-
-  // 現在地を取得
-  const getCurrentLocation = () => {
-    setIsLoading(true);
-    setError(null);
-
-    if (!navigator.geolocation) {
-      setError("お使いのブラウザは位置情報取得に対応していません");
-      setIsLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocation({ lat: latitude, lng: longitude });
-        setIsLoading(false);
-      },
-      (err) => {
-        setError(`位置情報の取得に失敗しました: ${err.message}`);
-        setIsLoading(false);
-      }
-    );
-  };
+  }, [searchParams, router]);
 
   // 検索を実行
-  const searchRestaurants = async (page: number = pageFromUrl) => {
+  const searchRestaurants = useCallback(async (page: number = pageFromUrl) => {
     if (!location.lat || !location.lng) {
       setError("位置情報を先に取得してください");
       return;
@@ -140,7 +91,7 @@ export default function SearchPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [location.lat, location.lng, radius, perPage, updateQueryParams, pageFromUrl]);
 
   // 検索フォームの送信ハンドラ
   const handleSubmit = (e: React.FormEvent) => {
@@ -159,7 +110,7 @@ export default function SearchPage() {
     : 0;
 
   // ページネーションのコントロールに使用する配列の生成
-  const getPageNumbers = () => {
+  const getPageNumbers = useCallback(() => {
     // 表示するページネーション数
     const maxVisiblePages = 5;
     let startPage: number;
@@ -187,7 +138,7 @@ export default function SearchPage() {
       { length: endPage - startPage + 1 },
       (_, i) => startPage + i
     );
-  };
+  }, [totalPages, pageFromUrl]);
 
   // コンポーネントがマウントされたときとURLのページ番号が変わったときに検索を実行
   useEffect(() => {
@@ -195,15 +146,7 @@ export default function SearchPage() {
     if (location.lat && location.lng) {
       searchRestaurants(pageFromUrl);
     }
-  }, [pageFromUrl, location]); // URLのページが変わったら、または位置情報が設定されたら再検索
-
-  // コンポーネントがマウントされた時にセッションストレージから位置情報を取得
-  useEffect(() => {
-    const storedLocation = getLocationFromSessionStorage();
-    if (storedLocation.lat && storedLocation.lng) {
-      setLocation(storedLocation);
-    }
-  }, []);
+  }, [pageFromUrl, location.lat, location.lng, searchRestaurants]); // URLのページが変わったら、または位置情報が設定されたら再検索
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
@@ -215,16 +158,24 @@ export default function SearchPage() {
         {/* 現在地取得と検索フォームを横並びに */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* 現在地取得エリア */}
-          <LocationFinder location={location} isLoading={isLoading} onGetLocation={getCurrentLocation}/>
+          <LocationFinder
+            location={location}
+            isLoading={isLocationLoading}
+            onGetLocation={getCurrentLocation}
+          />
 
           {/* 検索フォーム */}
-          <SearchForm radius={radius} isLoading={isLoading} isDisabled={!location.lat || !location.lng} onRadiusChange={handleRadiusChange} onSubmit={handleSubmit}/>
+          <SearchForm
+            radius={radius}
+            isLoading={isLoading}
+            isDisabled={!location.lat || !location.lng}
+            onRadiusChange={handleRadiusChange}
+            onSubmit={handleSubmit}
+          />
         </div>
 
         {/* エラー表示 - グローバルに */}
-        {error && (
-          <ErrorMessage message={error || ""}/>
-        )}
+        {( error || locationError ) && (<ErrorMessage message={error || locationError || ""} />)}
 
         {/* ローディングインジケータ - 非モーダル */}
         {isLoading && <LoadingIndicator />}
@@ -251,12 +202,18 @@ export default function SearchPage() {
             {/* カードグリッド */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
               {restaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant}/>
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
               ))}
             </div>
 
             {/* ページネーション */}
-            <Pagination currentPage={pageFromUrl} totalPages={totalPages} isLoading={isLoading} pageNumbers={getPageNumbers()} onPageChange={searchRestaurants}/>
+            <Pagination
+              currentPage={pageFromUrl}
+              totalPages={totalPages}
+              isLoading={isLoading}
+              pageNumbers={getPageNumbers()}
+              onPageChange={searchRestaurants}
+            />
           </>
         ) : resultsInfo && !isLoading ? (
           <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100">

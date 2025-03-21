@@ -1,39 +1,47 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Restaurant, SearchResults } from "../types/restaurant";
-import Link from "next/link";
-import { FiMapPin, FiTag, FiChevronRight, FiSearch } from "react-icons/fi";
+import { Restaurant, SearchResults } from "./types/restaurant";
 import { useRouter, useSearchParams } from "next/navigation";
+import LocationFinder from "./components/restaurants/LocationFinder";
+import SearchForm from "./components/restaurants/SearchForm";
+import LoadingIndicator from "./components/ui/LoadingIndicator";
+import RestaurantCard from "./components/restaurants/RestaurantCard";
+import Pagination from "./components/restaurants/Pagination";
+import ErrorMessage from "./components/ui/ErrorMessage";
 
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // URLからページ番号を取得（ない場合は1をデフォルト値とする）
-  const pageFromUrl = searchParams.get("page") ? parseInt(searchParams.get("page") as string) : 1;
-  
+  const pageFromUrl = searchParams.get("page")
+    ? parseInt(searchParams.get("page") as string)
+    : 1;
+
   // セッションストレージから位置情報を取得する関数
   const getLocationFromSessionStorage = () => {
-    if (typeof window !== 'undefined') {
-      const savedLocation = sessionStorage.getItem('userLocation');
+    if (typeof window !== "undefined") {
+      const savedLocation = sessionStorage.getItem("userLocation");
       if (savedLocation) {
         try {
           return JSON.parse(savedLocation);
         } catch (e) {
-          console.error('Stored location parsing error:', e);
+          console.error("Stored location parsing error:", e);
         }
       }
     }
     return { lat: null, lng: null };
   };
-  
+
   const [location, setLocation] = useState<{
     lat: number | null;
     lng: number | null;
   }>(getLocationFromSessionStorage());
-  
-  const [radius, setRadius] = useState<string>(searchParams.get("radius") || "3");
+
+  const [radius, setRadius] = useState<string>(
+    searchParams.get("radius") || "3"
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -48,11 +56,11 @@ export default function SearchPage() {
   const updateQueryParams = (page: number, newRadius?: string) => {
     // 現在のURLパラメータを取得
     const params = new URLSearchParams(searchParams.toString());
-    
+
     // パラメータ更新
     params.set("page", page.toString());
     if (newRadius) params.set("radius", newRadius);
-    
+
     // URLを更新（ページ遷移せずにURLのみ変更）
     router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -60,10 +68,13 @@ export default function SearchPage() {
   // 位置情報が変更されたらセッションストレージに保存
   useEffect(() => {
     if (location.lat && location.lng) {
-      sessionStorage.setItem('userLocation', JSON.stringify({
-        lat: location.lat,
-        lng: location.lng
-      }));
+      sessionStorage.setItem(
+        "userLocation",
+        JSON.stringify({
+          lat: location.lat,
+          lng: location.lng,
+        })
+      );
     }
   }, [location]);
 
@@ -100,7 +111,7 @@ export default function SearchPage() {
 
     setIsLoading(true);
     setError(null);
-    
+
     // URLのページ番号を更新
     updateQueryParams(page, radius);
 
@@ -136,7 +147,7 @@ export default function SearchPage() {
     e.preventDefault();
     searchRestaurants(1); // 検索時は1ページ目から表示
   };
-  
+
   // 検索範囲変更時のハンドラ
   const handleRadiusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newRadius = e.target.value;
@@ -204,90 +215,19 @@ export default function SearchPage() {
         {/* 現在地取得と検索フォームを横並びに */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* 現在地取得エリア */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-              <h2 className="text-lg font-semibold text-gray-800">
-                現在地を取得
-              </h2>
-              <button
-                onClick={getCurrentLocation}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-all
-                        flex items-center justify-center gap-2 shadow-sm"
-                disabled={isLoading}
-              >
-                <FiMapPin className="inline-block" />
-                {isLoading ? "取得中..." : "現在地を取得"}
-              </button>
-            </div>
-
-            {location.lat && location.lng ? (
-              <div className="p-2 bg-green-50 border border-green-100 rounded-md text-green-700">
-                <p>
-                  緯度: {location.lat.toFixed(6)}, 経度:{" "}
-                  {location.lng.toFixed(6)}
-                </p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                位置情報を取得するには、上のボタンをクリックしてください。
-              </p>
-            )}
-          </div>
+          <LocationFinder location={location} isLoading={isLoading} onGetLocation={getCurrentLocation}/>
 
           {/* 検索フォーム */}
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white rounded-lg shadow-sm border border-gray-100 p-4"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-              <div className="flex-grow">
-                <label
-                  htmlFor="radius"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  検索範囲
-                </label>
-                <select
-                  id="radius"
-                  value={radius}
-                  onChange={handleRadiusChange}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 text-black transition-all"
-                  disabled={isLoading}
-                >
-                  <option value="1">300m</option>
-                  <option value="2">500m</option>
-                  <option value="3">1km</option>
-                  <option value="4">2km</option>
-                  <option value="5">3km</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-50 disabled:bg-gray-400 flex items-center justify-center gap-2"
-                disabled={isLoading || !location.lat || !location.lng}
-              >
-                <FiSearch className="inline-block" />
-                {isLoading ? "検索中..." : "レストランを検索"}
-              </button>
-            </div>
-          </form>
+          <SearchForm radius={radius} isLoading={isLoading} isDisabled={!location.lat || !location.lng} onRadiusChange={handleRadiusChange} onSubmit={handleSubmit}/>
         </div>
 
         {/* エラー表示 - グローバルに */}
         {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-md text-red-600">
-            {error}
-          </div>
+          <ErrorMessage message={error || ""}/>
         )}
 
         {/* ローディングインジケータ - 非モーダル */}
-        {isLoading && (
-          <div className="my-6 p-4 bg-white rounded-lg shadow-sm border border-gray-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-600 mr-3"></div>
-            <p className="text-gray-700">読み込み中...</p>
-          </div>
-        )}
+        {isLoading && <LoadingIndicator />}
 
         {/* 検索結果 */}
         {resultsInfo && !isLoading && (
@@ -311,111 +251,12 @@ export default function SearchPage() {
             {/* カードグリッド */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
               {restaurants.map((restaurant) => (
-                <div
-                  key={restaurant.id}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col"
-                >
-                  {/* 画像部分 */}
-                  <div className="relative h-36 bg-gray-200">
-                    {restaurant.photo?.pc?.m && (
-                      <img
-                        src={restaurant.photo.pc.m}
-                        alt={restaurant.name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    {/* ジャンルタグ */}
-                    {restaurant.genre?.name && (
-                      <span className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-md">
-                        {restaurant.genre.name}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* コンテンツ部分 */}
-                  <div className="p-3 flex-grow">
-                    <h3
-                      className="font-semibold text-base text-black mb-1 truncate"
-                      title={restaurant.name}
-                    >
-                      {restaurant.name}
-                    </h3>
-
-                    <div className="text-xs text-gray-600 mb-3">
-                      <div className="flex items-start gap-1 mb-1">
-                        <FiMapPin className="mt-0.5 min-w-4 text-gray-400" />
-                        <span className="truncate" title={restaurant.access}>
-                          {restaurant.access}
-                        </span>
-                      </div>
-                      {restaurant.budget?.name && (
-                        <div className="flex items-start gap-1">
-                          <FiTag className="mt-0.5 min-w-4 text-gray-400" />
-                          <span className="truncate">
-                            {restaurant.budget.name}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* フッター部分 */}
-                  <div className="px-3 pb-3 mt-auto">
-                    <Link href={`/restaurants/${restaurant.id}`}>
-                      <span className="block w-full text-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium flex items-center justify-center gap-1">
-                        詳細を見る
-                        <FiChevronRight />
-                      </span>
-                    </Link>
-                  </div>
-                </div>
+                <RestaurantCard key={restaurant.id} restaurant={restaurant}/>
               ))}
             </div>
 
             {/* ページネーション */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8 mb-4">
-                <div className="inline-flex rounded-md shadow-sm">
-                  {/* 前へボタン */}
-                  {pageFromUrl > 1 && (
-                    <button
-                      onClick={() => searchRestaurants(pageFromUrl - 1)}
-                      disabled={isLoading}
-                      className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      前へ
-                    </button>
-                  )}
-
-                  {/* ページ番号 */}
-                  {getPageNumbers().map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => searchRestaurants(pageNum)}
-                      disabled={isLoading || pageNum === pageFromUrl}
-                      className={`relative inline-flex items-center px-4 py-2 border ${
-                        pageNum === pageFromUrl
-                          ? "z-10 bg-indigo-600 text-white border-indigo-600"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                      } text-sm font-medium`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
-
-                  {/* 次へボタン */}
-                  {pageFromUrl < totalPages && (
-                    <button
-                      onClick={() => searchRestaurants(pageFromUrl + 1)}
-                      disabled={isLoading}
-                      className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      次へ
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            <Pagination currentPage={pageFromUrl} totalPages={totalPages} isLoading={isLoading} pageNumbers={getPageNumbers()} onPageChange={searchRestaurants}/>
           </>
         ) : resultsInfo && !isLoading ? (
           <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100">

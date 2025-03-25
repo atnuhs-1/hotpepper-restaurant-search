@@ -27,20 +27,25 @@ export default function SearchPage() {
 
     // レストラン検索のカスタムフック - 位置情報をもとにAPIからデータを取得
   const {
-    pageFromUrl,     // URLから取得したページ番号
-    radius,          // 検索半径
+    register,
+    handleSubmit,
     isLoading,       // データ取得中のローディング状態
     error,           // 検索エラー
     restaurants,     // 取得したレストラン一覧
     resultsInfo,     // 検索結果のメタデータ（総件数、表示件数など）
+    pageFromUrl,     // URLから取得したページ番号
     totalPages,      // 総ページ数
     searchRestaurants, // 検索を実行する関数
-    handleSubmit,     // 検索フォーム送信ハンドラ
-    handleRadiusChange, // 検索半径変更ハンドラ
     getPageNumbers,   // ページネーション用の表示ページ番号配列を生成
   } = useRestaurantSearch({ location });
 
   const pageNumbers = useMemo(() => getPageNumbers(), [getPageNumbers]);
+
+  // 位置情報を直接受け取って検索を実行
+  const handleLocationSuccess = (newLocation: { lat: number; lng: number }) => {
+    // ここで直接新しい位置情報を使用して検索
+    searchRestaurants(1, newLocation);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
@@ -55,16 +60,15 @@ export default function SearchPage() {
           <LocationFinder
             location={location}
             isLoading={isLocationLoading}
-            onGetLocation={getCurrentLocation}
+            onGetLocation={() => getCurrentLocation(handleLocationSuccess)}
           />
 
           {/* 検索フォーム */}
           <SearchForm
-            radius={radius}
-            isLoading={isLoading}
-            isDisabled={!location.lat || !location.lng}
-            onRadiusChange={handleRadiusChange}
-            onSubmit={handleSubmit}
+             register={register}
+             isLoading={isLoading}
+             isDisabled={!location.lat || !location.lng}
+             onSubmit={handleSubmit}
           />
         </div>
 

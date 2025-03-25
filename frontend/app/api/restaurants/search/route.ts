@@ -8,6 +8,9 @@ export async function GET(request: Request) {
   const radius = searchParams.get('radius') || '3'; // デフォルト値: 3（3km）
   const start = searchParams.get('start') || '1'; // ページング用
   const count = searchParams.get('count') || '20'; // 1ページあたりの件数
+  const genre = searchParams.get('genre') || '';
+  const budget = searchParams.get('budget') || '';
+  const keyword = searchParams.get('keyword') || '';
   
   if (!lat || !lng) {
     return NextResponse.json(
@@ -27,10 +30,19 @@ export async function GET(request: Request) {
       );
     }
     
+    // API URLのベース部分
+    let apiUrl = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${apiKey}&lat=${lat}&lng=${lng}&range=${radius}&start=${start}&count=${count}`;
+    
+    // 条件パラメータを追加
+    if (genre) apiUrl += `&genre=${genre}`;
+    if (budget) apiUrl += `&budget=${budget}`;
+    if (keyword) apiUrl += `&keyword=${encodeURIComponent(keyword)}`;
+    
+    // 最後にフォーマットを追加
+    apiUrl += '&format=json';
+    
     // ホットペッパーAPIへのリクエスト
-    const response = await fetch(
-      `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${apiKey}&lat=${lat}&lng=${lng}&range=${radius}&start=${start}&count=${count}&format=json`
-    );
+    const response = await fetch(apiUrl);
     
     if (!response.ok) {
       throw new Error('ホットペッパーAPI リクエストエラー');

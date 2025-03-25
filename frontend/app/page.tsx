@@ -29,6 +29,9 @@ export default function SearchPage() {
   const {
     pageFromUrl,     // URLから取得したページ番号
     radius,          // 検索半径
+    genre,
+    budget,
+    keyword,
     isLoading,       // データ取得中のローディング状態
     error,           // 検索エラー
     restaurants,     // 取得したレストラン一覧
@@ -37,10 +40,20 @@ export default function SearchPage() {
     searchRestaurants, // 検索を実行する関数
     handleSubmit,     // 検索フォーム送信ハンドラ
     handleRadiusChange, // 検索半径変更ハンドラ
+    handleGenreChange,
+    handleBudgetChange,
+    handleKeywordChange,
     getPageNumbers,   // ページネーション用の表示ページ番号配列を生成
   } = useRestaurantSearch({ location });
 
   const pageNumbers = useMemo(() => getPageNumbers(), [getPageNumbers]);
+
+  // 位置情報を直接受け取って検索を実行
+  const handleLocationSuccess = (newLocation: { lat: number; lng: number }) => {
+    // ここで直接新しい位置情報を使用して検索
+    console.log("位置情報を受け取って検索を実行 newLocation: ", newLocation);
+    searchRestaurants(1, newLocation);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen w-full">
@@ -55,15 +68,21 @@ export default function SearchPage() {
           <LocationFinder
             location={location}
             isLoading={isLocationLoading}
-            onGetLocation={getCurrentLocation}
+            onGetLocation={() => getCurrentLocation(handleLocationSuccess)}
           />
 
           {/* 検索フォーム */}
           <SearchForm
             radius={radius}
+            genre={genre}
+            budget={budget}
+            keyword={keyword}
             isLoading={isLoading}
             isDisabled={!location.lat || !location.lng}
             onRadiusChange={handleRadiusChange}
+            onGenreChange={handleGenreChange}
+            onBudgetChange={handleBudgetChange}
+            onKeywordChange={handleKeywordChange}
             onSubmit={handleSubmit}
           />
         </div>

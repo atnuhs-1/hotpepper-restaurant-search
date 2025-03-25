@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 
 type Location = {
@@ -21,27 +23,14 @@ export function useGeolocation() {
     return { lat: null, lng: null };
   };
 
-  const [location, setLocation] = useState<Location>(
-    getLocationFromSessionStorage()
-  );
+  const [location, setLocation] = useState<Location>({ lat: null, lng: null } );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 位置情報が変更されたらセッションストレージに保存
-  useEffect(() => {
-    if (location.lat && location.lng) {
-      sessionStorage.setItem(
-        "userLocation",
-        JSON.stringify({
-          lat: location.lat,
-          lng: location.lng,
-        })
-      );
-    }
-  }, [location]);
-
-  // 現在地を取得
-  const getCurrentLocation = () => {
+  // 現在地を取得（検索コールバックを受け取れるように修正）
+  const getCurrentLocation = (
+    callback?: (position: { lat: number; lng: number }) => void
+  ) => {
     setIsLoading(true);
     setError(null);
 
@@ -53,9 +42,27 @@ export function useGeolocation() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocation({ lat: latitude, lng: longitude });
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        sessionStorage.setItem(
+          "userLocation",
+          JSON.stringify({
+            lat: newLocation.lat,
+            lng: newLocation.lng,
+          })
+        );
+
+        // 状態を更新
+        setLocation(newLocation);
         setIsLoading(false);
+
+        // 新しい位置情報を直接コールバックに渡す
+        if (callback) {
+          callback(newLocation);
+        }
       },
       (err) => {
         setError(`位置情報の取得に失敗しました: ${err.message}`);

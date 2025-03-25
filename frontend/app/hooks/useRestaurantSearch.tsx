@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Restaurant, SearchResults } from "../types/restaurant";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -31,6 +31,15 @@ export function useRestaurantSearch({
   const [radius, setRadius] = useState<string>(
     searchParams.get("radius") || initialRadius
   );
+  const [genre, setGenre] = useState<string>(
+    searchParams.get("genre") || ""
+  );
+  const [budget, setBudget] = useState<string>(
+    searchParams.get("budget") || ""
+  );
+  const [keyword, setKeyword] = useState<string>(
+    searchParams.get("keyword") || ""
+  );
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,15 +56,30 @@ export function useRestaurantSearch({
       const params = new URLSearchParams(searchParams.toString());
       params.set("page", page.toString());
       if (newRadius) params.set("radius", newRadius);
+
+      // 新しいパラメータを追加
+      if (genre) params.set("genre", genre);
+      else params.delete("genre");
+      
+      if (budget) params.set("budget", budget);
+      else params.delete("budget");
+      
+      if (keyword) params.set("keyword", keyword);
+      else params.delete("keyword");
+
       router.push(`?${params.toString()}`, { scroll: false });
     },
-    [searchParams, router]
+    [searchParams, router, genre, budget, keyword]
   );
 
   // 検索を実行
   const searchRestaurants = useCallback(
-    async (page: number = pageFromUrl) => {
-      if (!location.lat || !location.lng) {
+    async (page: number = pageFromUrl, overrideLocation?: { lat: number; lng: number }) => {
+      console.log("searchRestaurantsを実行")
+      // 使用する位置情報（オーバーライドか現在の状態）
+      const locationToUse = overrideLocation || location;
+
+      if (!locationToUse.lat || !locationToUse.lng) {
         setError("位置情報を先に取得してください");
         return;
       }
@@ -70,15 +94,20 @@ export function useRestaurantSearch({
       const start = (page - 1) * perPage + 1;
 
       try {
-        const response = await fetch(
-          `/api/restaurants/search?lat=${location.lat}&lng=${location.lng}&radius=${radius}&start=${start}&count=${perPage}`
-        );
+        let apiUrl = `/api/restaurants/search?lat=${locationToUse.lat}&lng=${locationToUse.lng}&radius=${radius}&start=${start}&count=${perPage}`;
+        
+        if (genre) apiUrl += `&genre=${genre}`;
+        if (budget) apiUrl += `&budget=${budget}`;
+        if (keyword) apiUrl += `&keyword=${encodeURIComponent(keyword)}`;
+        
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
           throw new Error("レストラン検索に失敗しました");
         }
 
         const data: SearchResults = await response.json();
+        console.log("dataを取得 data: ", data.results.shop);
         setRestaurants(data.results.shop || []);
         setResultsInfo({
           available: data.results.results_available,
@@ -93,9 +122,11 @@ export function useRestaurantSearch({
       }
     },
     [
-      location.lat,
-      location.lng,
+      location,
       radius,
+      genre,
+      budget,
+      keyword,
       perPage,
       updateQueryParams,
       pageFromUrl,
@@ -146,6 +177,27 @@ export function useRestaurantSearch({
     []
   );
 
+  const handleGenreChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setGenre(e.target.value);
+    },
+    []
+  );
+
+  const handleBudgetChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setBudget(e.target.value);
+    },
+    []
+  );
+
+  const handleKeywordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setKeyword(e.target.value);
+    },
+    []
+  );
+
   // 検索フォームの送信ハンドラ
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -155,15 +207,25 @@ export function useRestaurantSearch({
     [searchRestaurants]
   );
 
-  // 位置情報が変わった時に検索を実行
-  useEffect(() => {
-    if (location.lat && location.lng) {
+  // 初回マウント時のみ実行するためのフラグ
+const initialRenderRef = useRef(true);
+
+useEffect(() => {
+  // 位置情報があり、URLにパラメータがある場合のみ検索を実行
+  if (location.lat && location.lng && searchParams.toString()) {
+    // 初回レンダリング時のみ実行
+    if (initialRenderRef.current) {
+      initialRenderRef.current = false;
       searchRestaurants(pageFromUrl);
     }
-  }, [pageFromUrl, location.lat, location.lng, searchRestaurants]);
+  }
+}, [location.lat, location.lng, pageFromUrl, searchParams, searchRestaurants]);
 
   return {
     radius,
+    genre,
+    budget,
+    keyword,
     isLoading,
     error,
     restaurants,
@@ -172,6 +234,9 @@ export function useRestaurantSearch({
     totalPages,
     getPageNumbers,
     handleRadiusChange,
+    handleGenreChange,
+    handleBudgetChange,
+    handleKeywordChange,
     handleSubmit,
     searchRestaurants,
   };

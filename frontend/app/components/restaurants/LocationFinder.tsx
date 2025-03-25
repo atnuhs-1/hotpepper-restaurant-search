@@ -1,3 +1,5 @@
+"use client";
+
 import { FiMapPin } from "react-icons/fi";
 
 type LocationFinderProps = {

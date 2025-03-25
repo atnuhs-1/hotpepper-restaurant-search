@@ -21,6 +21,13 @@ interface SearchFormInputs {
   genre: string;
   budget: string;
   keyword: string;
+  // 詳細条件
+  lunch: string;
+  free_food: string;
+  free_drink: string;
+  parking: string;
+  card: string;
+  private_room: string;
 }
 
 export function useRestaurantSearch({
@@ -46,10 +53,19 @@ export function useRestaurantSearch({
     formState: { isSubmitting },
   } = useForm<SearchFormInputs>({
     defaultValues: {
+      // 基本条件
       radius: searchParams.get("radius") || initialRadius,
       genre: searchParams.get("genre") || "",
       budget: searchParams.get("budget") || "",
       keyword: searchParams.get("keyword") || "",
+
+      // 詳細条件
+      lunch: searchParams.get("lunch") || "",
+      free_food: searchParams.get("free_food") || "",
+      free_drink: searchParams.get("free_drink") || "",
+      parking: searchParams.get("parking") || "",
+      card: searchParams.get("card") || "",
+      private_room: searchParams.get("private_room") || "",
     },
   });
 
@@ -84,6 +100,28 @@ export function useRestaurantSearch({
       if (searchValues.keyword) params.set("keyword", searchValues.keyword);
       else params.delete("keyword");
 
+      // 詳細パラメータも同様に処理
+      if (searchValues.lunch) params.set("lunch", searchValues.lunch);
+      else params.delete("lunch");
+
+      if (searchValues.free_food)
+        params.set("free_food", searchValues.free_food);
+      else params.delete("free_food");
+
+      if (searchValues.free_drink)
+        params.set("free_drink", searchValues.free_drink);
+      else params.delete("free_drink");
+
+      if (searchValues.parking) params.set("parking", searchValues.parking);
+      else params.delete("parking");
+
+      if (searchValues.card) params.set("card", searchValues.card);
+      else params.delete("card");
+
+      if (searchValues.private_room)
+        params.set("private_room", searchValues.private_room);
+      else params.delete("private_room");
+
       router.push(`?${params.toString()}`, { scroll: false });
     },
     [searchParams, router]
@@ -96,7 +134,6 @@ export function useRestaurantSearch({
       overrideLocation?: { lat: number; lng: number },
       formData?: SearchFormInputs
     ) => {
-      console.log("searchRestaurantsを実行");
       // 使用する位置情報（オーバーライドか現在の状態）
       const locationToUse = overrideLocation || location;
 
@@ -120,10 +157,22 @@ export function useRestaurantSearch({
       try {
         let apiUrl = `/api/restaurants/search?lat=${locationToUse.lat}&lng=${locationToUse.lng}&radius=${searchValues.radius}&start=${start}&count=${perPage}`;
 
+        // 基本パラメータ
         if (searchValues.genre) apiUrl += `&genre=${searchValues.genre}`;
         if (searchValues.budget) apiUrl += `&budget=${searchValues.budget}`;
         if (searchValues.keyword)
           apiUrl += `&keyword=${encodeURIComponent(searchValues.keyword)}`;
+
+        // 詳細パラメータ
+        if (searchValues.lunch) apiUrl += `&lunch=${searchValues.lunch}`;
+        if (searchValues.free_food)
+          apiUrl += `&free_food=${searchValues.free_food}`;
+        if (searchValues.free_drink)
+          apiUrl += `&free_drink=${searchValues.free_drink}`;
+        if (searchValues.parking) apiUrl += `&parking=${searchValues.parking}`;
+        if (searchValues.card) apiUrl += `&card=${searchValues.card}`;
+        if (searchValues.private_room)
+          apiUrl += `&private_room=${searchValues.private_room}`;
 
         const response = await fetch(apiUrl);
 
@@ -132,7 +181,6 @@ export function useRestaurantSearch({
         }
 
         const data: SearchResults = await response.json();
-        console.log("dataを取得 data: ", data.results.shop);
         setRestaurants(data.results.shop || []);
         setResultsInfo({
           available: data.results.results_available,
@@ -193,7 +241,6 @@ export function useRestaurantSearch({
   const initialRenderRef = useRef(true);
 
   useEffect(() => {
-    console.log("useRestaurantsのuseEffect実行", initialRenderRef.current);
     // 位置情報があり、URLにパラメータがある場合のみ検索を実行
     if (location.lat && location.lng && searchParams.toString()) {
       // 初回レンダリング時のみ実行
@@ -216,7 +263,7 @@ export function useRestaurantSearch({
     handleSubmit,
     formValues: { radius, genre, budget, keyword },
     setValue,
-    
+
     // 検索状態
     isLoading,
     error,
@@ -224,7 +271,7 @@ export function useRestaurantSearch({
     resultsInfo,
     pageFromUrl,
     totalPages,
-    
+
     // 関数
     getPageNumbers,
     searchRestaurants,

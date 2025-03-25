@@ -29,7 +29,6 @@ export default function SearchPage() {
   const {
     register,
     handleSubmit,
-    formValues: { radius, genre, budget, keyword },
     isLoading,       // データ取得中のローディング状態
     error,           // 検索エラー
     restaurants,     // 取得したレストラン一覧
@@ -45,7 +44,6 @@ export default function SearchPage() {
   // 位置情報を直接受け取って検索を実行
   const handleLocationSuccess = (newLocation: { lat: number; lng: number }) => {
     // ここで直接新しい位置情報を使用して検索
-    console.log("位置情報を受け取って検索を実行 newLocation: ", newLocation);
     searchRestaurants(1, newLocation);
   };
 

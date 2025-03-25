@@ -1,30 +1,25 @@
+import { UseFormRegister } from "react-hook-form";
 import { FiSearch } from "react-icons/fi";
 
-type SearchFormProps = {
+// 検索フォームの型定義
+interface SearchFormInputs {
   radius: string;
   genre: string;
   budget: string;
   keyword: string;
+}
+
+type SearchFormProps = {
+  register: UseFormRegister<SearchFormInputs>;
   isLoading: boolean;
   isDisabled: boolean;
-  onRadiusChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onGenreChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onBudgetChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onKeywordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
 };
 
 export default function SearchForm({
-  radius,
-  genre,
-  budget,
-  keyword,
+  register,
   isLoading,
   isDisabled,
-  onRadiusChange,
-  onGenreChange,
-  onBudgetChange,
-  onKeywordChange,
   onSubmit
 }: SearchFormProps) {
   return (
@@ -41,8 +36,7 @@ export default function SearchForm({
             </label>
             <select
               id="radius"
-              value={radius}
-              onChange={onRadiusChange}
+              {...register("radius")}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 text-black transition-all"
               disabled={isLoading}
             >
@@ -61,8 +55,7 @@ export default function SearchForm({
             </label>
             <select
               id="genre"
-              value={genre}
-              onChange={onGenreChange}
+              {...register("genre")}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 text-black transition-all"
               disabled={isLoading}
             >
@@ -88,8 +81,7 @@ export default function SearchForm({
             </label>
             <select
               id="budget"
-              value={budget}
-              onChange={onBudgetChange}
+              {...register("budget")}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 text-black transition-all"
               disabled={isLoading}
             >
@@ -117,8 +109,7 @@ export default function SearchForm({
             <input
               id="keyword"
               type="text"
-              value={keyword}
-              onChange={onKeywordChange}
+              {...register("keyword")}
               placeholder="店名、料理名など"
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 text-black transition-all"
               disabled={isLoading}

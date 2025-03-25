@@ -27,22 +27,16 @@ export default function SearchPage() {
 
     // レストラン検索のカスタムフック - 位置情報をもとにAPIからデータを取得
   const {
-    pageFromUrl,     // URLから取得したページ番号
-    radius,          // 検索半径
-    genre,
-    budget,
-    keyword,
+    register,
+    handleSubmit,
+    formValues: { radius, genre, budget, keyword },
     isLoading,       // データ取得中のローディング状態
     error,           // 検索エラー
     restaurants,     // 取得したレストラン一覧
     resultsInfo,     // 検索結果のメタデータ（総件数、表示件数など）
+    pageFromUrl,     // URLから取得したページ番号
     totalPages,      // 総ページ数
     searchRestaurants, // 検索を実行する関数
-    handleSubmit,     // 検索フォーム送信ハンドラ
-    handleRadiusChange, // 検索半径変更ハンドラ
-    handleGenreChange,
-    handleBudgetChange,
-    handleKeywordChange,
     getPageNumbers,   // ページネーション用の表示ページ番号配列を生成
   } = useRestaurantSearch({ location });
 
@@ -73,17 +67,10 @@ export default function SearchPage() {
 
           {/* 検索フォーム */}
           <SearchForm
-            radius={radius}
-            genre={genre}
-            budget={budget}
-            keyword={keyword}
-            isLoading={isLoading}
-            isDisabled={!location.lat || !location.lng}
-            onRadiusChange={handleRadiusChange}
-            onGenreChange={handleGenreChange}
-            onBudgetChange={handleBudgetChange}
-            onKeywordChange={handleKeywordChange}
-            onSubmit={handleSubmit}
+             register={register}
+             isLoading={isLoading}
+             isDisabled={!location.lat || !location.lng}
+             onSubmit={handleSubmit}
           />
         </div>
 

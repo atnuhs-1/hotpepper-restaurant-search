@@ -6,6 +6,7 @@ services:
     environment:
       - HOTPEPPER_API_KEY=${HOTPEPPER_API_KEY}
       - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+      - NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=${NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
     command: npm run dev -- -H 0.0.0.0
     develop:
       watch:

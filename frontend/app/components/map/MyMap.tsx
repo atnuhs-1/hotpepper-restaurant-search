@@ -154,6 +154,7 @@ export default function MyMap({
   restaurants = [], // デフォルト: 空配列
 }: Partial<CircleProps>) {
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
+  const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID as string;
 
   if (!API_KEY) {
     console.warn("Google Maps API キーが設定されていません。");
@@ -169,7 +170,7 @@ export default function MyMap({
     <div className="w-full h-full">
       <APIProvider apiKey={API_KEY}>
         <Map
-          mapId={"53f917a585c1b5d2"}
+          mapId={MAP_ID}
           defaultZoom={15} // 円がよく見えるようにズームレベルを調整
           defaultCenter={center}
           gestureHandling={"cooperative"}

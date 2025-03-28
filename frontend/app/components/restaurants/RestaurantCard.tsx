@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiMapPin, FiTag, FiChevronRight } from "react-icons/fi";
 import { Restaurant } from "../../types/restaurant";
+import Image from "next/image";
 
 type RestaurantCardProps = {
   restaurant: Restaurant;
@@ -13,11 +14,15 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     >
       {/* 画像部分 */}
       <div className="relative h-36 bg-gray-200">
-        {restaurant.photo?.pc?.m && (
-          <img
-            src={restaurant.photo.pc.m}
+        {restaurant.photo?.pc?.l && (
+          <Image
+            src={restaurant.photo.pc.l}
             alt={restaurant.name}
-            className="w-full h-full object-cover"
+            width={238}  // 実際のpc.l画像サイズ
+            height={238}
+            className="w-full h-full object-cover" // コンテナいっぱいに画像を表示し、アスペクト比を維持
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" // レスポンシブサイズ指定
+            loading="lazy" // ビューポートに近づくまで読み込まない（パフォーマンス向上）
           />
         )}
         {/* ジャンルタグ */}
@@ -58,7 +63,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       {/* フッター部分 */}
       <div className="px-3 pb-3 mt-auto">
         <Link href={`/restaurants/${restaurant.id}`}>
-          <span className="block w-full text-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium flex items-center justify-center gap-1">
+          <span className="w-full text-center px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium flex items-center justify-center gap-1">
             詳細を見る
             <FiChevronRight />
           </span>

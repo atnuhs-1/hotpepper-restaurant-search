@@ -8,7 +8,8 @@ import Pagination from "./components/restaurants/Pagination";
 import ErrorMessage from "./components/ui/ErrorMessage";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useRestaurantSearch } from "./hooks/useRestaurantSearch";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import MyMap from "./components/map/MyMap";
 
 export default function SearchPage() {
   // このコンポーネントは、ユーザーの位置情報をもとにレストランを検索し結果を表示する
@@ -16,6 +17,9 @@ export default function SearchPage() {
   // 1. 現在地の取得と表示
   // 2. 検索半径の指定と検索実行
   // 3. 検索結果の表示とページネーション
+
+  // 地図表示モードのステート追加
+  const [showMap, setShowMap] = useState(false);
 
   // 位置情報取得のカスタムフック - ユーザーの緯度・経度を提供
   const {
@@ -25,18 +29,19 @@ export default function SearchPage() {
     getCurrentLocation,
   } = useGeolocation();
 
-    // レストラン検索のカスタムフック - 位置情報をもとにAPIからデータを取得
+  // レストラン検索のカスタムフック - 位置情報をもとにAPIからデータを取得
   const {
     register,
+    formValues,
     handleSubmit,
-    isLoading,       // データ取得中のローディング状態
-    error,           // 検索エラー
-    restaurants,     // 取得したレストラン一覧
-    resultsInfo,     // 検索結果のメタデータ（総件数、表示件数など）
-    pageFromUrl,     // URLから取得したページ番号
-    totalPages,      // 総ページ数
+    isLoading, // データ取得中のローディング状態
+    error, // 検索エラー
+    restaurants, // 取得したレストラン一覧
+    resultsInfo, // 検索結果のメタデータ（総件数、表示件数など）
+    pageFromUrl, // URLから取得したページ番号
+    totalPages, // 総ページ数
     searchRestaurants, // 検索を実行する関数
-    getPageNumbers,   // ページネーション用の表示ページ番号配列を生成
+    getPageNumbers, // ページネーション用の表示ページ番号配列を生成
   } = useRestaurantSearch({ location });
 
   const pageNumbers = useMemo(() => getPageNumbers(), [getPageNumbers]);
@@ -54,6 +59,28 @@ export default function SearchPage() {
           グルメ検索
         </h1>
 
+        {/* 表示切替ボタン - 追加 */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex rounded-md shadow-sm">
+            <button
+              onClick={() => setShowMap(false)}
+              className={`px-4 py-2 text-sm font-medium ${
+                !showMap ? "bg-indigo-600 text-white" : "bg-white text-gray-700"
+              } border border-indigo-300 rounded-l-md`}
+            >
+              リスト表示
+            </button>
+            <button
+              onClick={() => setShowMap(true)}
+              className={`px-4 py-2 text-sm font-medium ${
+                showMap ? "bg-indigo-600 text-white" : "bg-white text-gray-700"
+              } border border-indigo-300 rounded-r-md`}
+            >
+              マップ表示
+            </button>
+          </div>
+        </div>
+
         {/* 現在地取得と検索フォームを横並びに */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* 現在地取得UI - 位置情報の表示と取得ボタン */}
@@ -65,16 +92,16 @@ export default function SearchPage() {
 
           {/* 検索フォーム */}
           <SearchForm
-             register={register}
-             isLoading={isLoading}
-             isDisabled={!location.lat || !location.lng}
-             onSubmit={handleSubmit}
+            register={register}
+            isLoading={isLoading}
+            isDisabled={!location.lat || !location.lng}
+            onSubmit={handleSubmit}
           />
         </div>
 
         {/* エラー表示 - 位置情報または検索でエラーが発生した場合 */}
         {(error || locationError) && (
-          <ErrorMessage message={(error || locationError || "")} />
+          <ErrorMessage message={error || locationError || ""} />
         )}
 
         {/* エラー表示 - 位置情報または検索でエラーが発生した場合 */}
@@ -97,17 +124,36 @@ export default function SearchPage() {
           </div>
         )}
 
+        {/* マップ表示モード - レストランデータを渡す */}
+        {showMap && location.lat && location.lng && (
+          <div className="h-[600px] mb-6 border border-gray-200 rounded-lg overflow-hidden">
+            <MyMap
+              center={{ lat: location.lat, lng: location.lng }}
+              radius={Number(
+                formValues.radius === "1"
+                  ? 300
+                  : formValues.radius === "2"
+                  ? 500
+                  : formValues.radius === "3"
+                  ? 1000
+                  : formValues.radius === "4"
+                  ? 2000
+                  : 3000
+              )}
+              restaurants={restaurants} // レストランデータを渡す
+            />
+          </div>
+        )}
+
         {/* 条件分岐による結果表示 */}
-        {!isLoading && resultsInfo && (
-          restaurants.length > 0 ? (
+        {!isLoading &&
+          resultsInfo &&
+          (restaurants.length > 0 ? (
             <>
               {/* レストランカードのグリッド表示 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
                 {restaurants.map((restaurant) => (
-                  <RestaurantCard 
-                    key={restaurant.id} 
-                    restaurant={restaurant} 
-                  />
+                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                 ))}
               </div>
 
@@ -125,8 +171,7 @@ export default function SearchPage() {
             <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100">
               <p className="text-gray-600">検索結果がありません</p>
             </div>
-          )
-        )}
+          ))}
       </main>
     </div>
   );

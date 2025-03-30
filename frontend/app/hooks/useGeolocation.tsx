@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 type Location = {
@@ -7,38 +8,56 @@ type Location = {
   lng: number | null;
 };
 
-export function useGeolocation() {
-  // セッションストレージからユーザーの位置情報を取得する関数
-  const getLocationFromSessionStorage = () => {
-    if (typeof window !== "undefined") {
-      const savedLocation = sessionStorage.getItem("userLocation");
-      if (savedLocation) {
+interface UseGeolocationOptions {
+  loadFromUrl?: boolean; // URLからロードするかのオプション
+}
+
+export function useGeolocation(options: UseGeolocationOptions = { loadFromUrl: false }) {
+  const searchParams = useSearchParams();
+  const [location, setLocation] = useState<Location>({ lat: null, lng: null });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLocationAvailable, setIsLocationAvailable] = useState(false);
+
+  // URLからの位置情報をロードする処理
+  useEffect(() => {
+    if (options.loadFromUrl) {
+      const latParam = searchParams.get("lat");
+      const lngParam = searchParams.get("lng");
+      
+      if (latParam && lngParam) {
         try {
-          return JSON.parse(savedLocation);
-        } catch (e) {
-          console.error("Stored location parsing error:", e);
+          const lat = parseFloat(latParam);
+          const lng = parseFloat(lngParam);
+          
+          // 有効な数値かチェック
+          if (!isNaN(lat) && !isNaN(lng)) {
+            setLocation({ lat, lng });
+            setIsLocationAvailable(true);
+          }
+        } catch (err) {
+          console.error("URLからの位置情報の解析に失敗しました", err);
         }
       }
     }
-    return { lat: null, lng: null };
-  };
+  }, [searchParams, options.loadFromUrl]);
 
-  const [location, setLocation] = useState<Location>({ lat: null, lng: null } );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // 現在地を取得（検索コールバックを受け取れるように修正）
-  const getCurrentLocation = (
-    callback?: (position: { lat: number; lng: number }) => void
-  ) => {
-    setIsLoading(true);
+  // 位置情報の設定関数（外部からの更新用）
+  const updateLocation = (newLocation: Location) => {
+    setLocation(newLocation);
+    setIsLocationAvailable(true);
     setError(null);
+  }
 
+  // 現在地を取得
+  const getCurrentLocation = (onSuccess?: (location: Location) => void) => {
     if (!navigator.geolocation) {
-      setError("お使いのブラウザは位置情報取得に対応していません");
-      setIsLoading(false);
+      setError("お使いのブラウザは位置情報をサポートしていません");
       return;
     }
+
+    setIsLoading(true);
+    setError(null);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -46,44 +65,48 @@ export function useGeolocation() {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-
-        sessionStorage.setItem(
-          "userLocation",
-          JSON.stringify({
-            lat: newLocation.lat,
-            lng: newLocation.lng,
-          })
-        );
-
-        // 状態を更新
         setLocation(newLocation);
         setIsLoading(false);
 
-        // 新しい位置情報を直接コールバックに渡す
-        if (callback) {
-          callback(newLocation);
+        // 成功コールバックがあれば実行
+        if (onSuccess) {
+          onSuccess(newLocation);
         }
       },
-      (err) => {
-        setError(`位置情報の取得に失敗しました: ${err.message}`);
+      (error) => {
         setIsLoading(false);
-      }
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setError("位置情報へのアクセスが拒否されました");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setError("位置情報が利用できません");
+            break;
+          case error.TIMEOUT:
+            setError("位置情報の取得がタイムアウトしました");
+            break;
+          default:
+            setError("位置情報の取得中に問題が発生しました");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
-  // コンポーネントがマウントされた時にセッションストレージから位置情報を取得
-  useEffect(() => {
-    const storedLocation = getLocationFromSessionStorage();
-    if (storedLocation.lat && storedLocation.lng) {
-      setLocation(storedLocation);
-    }
-  }, []);
+  // 位置情報をリセットする関数
+  const resetLocation = () => {
+    setLocation({ lat: 0, lng: 0 });
+    setIsLocationAvailable(false);
+    setError(null);
+  };
 
   return {
     location,
-    setLocation,
     isLoading,
     error,
+    isLocationAvailable,
     getCurrentLocation,
+    updateLocation, // 外部から位置情報を更新するためのメソッド
+    resetLocation, // 位置情報をリセットするメソッド
   };
 }

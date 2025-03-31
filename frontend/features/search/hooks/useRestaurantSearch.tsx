@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Restaurant, SearchResults } from "../types/restaurant";
+import { Restaurant, SearchResults } from "../../types/search";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -8,7 +8,7 @@ type Location = {
   lng: number | null;
 };
 
-interface SearchParams {
+interface UseRestaurantSearchProps {
   location: Location;
   initialRadius?: string;
   initialPage?: number;
@@ -35,7 +35,7 @@ export function useRestaurantSearch({
   initialRadius = "3",
   initialPage = 1,
   perPage = 20,
-}: SearchParams) {
+}: UseRestaurantSearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -71,7 +71,6 @@ export function useRestaurantSearch({
 
   // フォーム値の監視
   const formValues = watch();
-  const { radius, genre, budget, keyword } = formValues;
 
   // 検索状態管理
   const [isLoading, setIsLoading] = useState<boolean>(isSubmitting);
@@ -82,6 +81,16 @@ export function useRestaurantSearch({
     returned: number;
     start: number;
   } | null>(null);
+
+  // フォーム値を外部から設定する関数
+  const setFormValues = useCallback(
+    (values: Partial<SearchFormInputs>) => {
+      Object.entries(values).forEach(([key, value]) => {
+        setValue(key as keyof SearchFormInputs, value);
+      });
+    },
+    [setValue]
+  );
 
   // クエリパラメータを更新する関数
   const updateQueryParams = useCallback(
@@ -131,7 +140,7 @@ export function useRestaurantSearch({
   const searchRestaurants = useCallback(
     async (
       page: number = pageFromUrl,
-      overrideLocation?: { lat: number; lng: number },
+      overrideLocation?: Location,
       formData?: SearchFormInputs
     ) => {
       // 使用する位置情報（オーバーライドか現在の状態）
@@ -261,8 +270,9 @@ export function useRestaurantSearch({
     // フォーム関連
     register,
     handleSubmit,
-    formValues: { radius, genre, budget, keyword },
+    formValues,
     setValue,
+    setFormValues,
 
     // 検索状態
     isLoading,

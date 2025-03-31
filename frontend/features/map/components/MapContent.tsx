@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  APIProvider,
-  Map,
   AdvancedMarker,
   useMap,
   InfoWindow,
@@ -13,12 +11,13 @@ import { Restaurant } from "@/types/search";
 import { MdRestaurant } from "react-icons/md";
 import Image from "next/image";
 import Link from "next/link";
-import { getZoomLevelForRadius } from "@/features/map/utils/map";
 
-interface RestaurantMapProps {
+interface MapContentProps {
+  center: { lat: number; lng: number };
+  radius: number;
   restaurants: Restaurant[];
-  searchCenter?: { lat: number; lng: number };
-  searchRadius?: number;
+  selectedRestaurantId?: string;
+  onMarkerClick?: (restaurant: Restaurant) => void;
 }
 
 // カスタムマーカーコンポーネント - 中心点用 (GoogleMapの現在地スタイルに近いデザイン)
@@ -51,27 +50,54 @@ const RestaurantMarker = ({
   </div>
 );
 
-// 内部コンポーネントでuseMapフックを使用
-function MapContent({
-  restaurants,
+export default function MapContent({
   center,
   radius,
-}: {
-  restaurants: Restaurant[];
-  center: { lat: number; lng: number };
-  radius: number;
-}) {
+  restaurants,
+  selectedRestaurantId,
+  onMarkerClick,
+}: MapContentProps) {
   const map = useMap();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+
+  // selectedRestaurantIdが変更されたときに対応するレストランを選択
+  useEffect(() => {
+    if (selectedRestaurantId) {
+      const restaurant = restaurants.find(r => r.id === selectedRestaurantId);
+      if (restaurant) {
+        setSelectedRestaurant(restaurant);
+        // 選択されたレストランの位置にパン
+        if (map && restaurant.lat && restaurant.lng) {
+          map.panTo({ lat: restaurant.lat, lng: restaurant.lng });
+        }
+      }
+    } else {
+      setSelectedRestaurant(null);
+    }
+  }, [selectedRestaurantId, restaurants, map]);
 
   // centerが変更されたときにマップの中心を変更
   useEffect(() => {
     if (map) {
       map.panTo(center);
-      
-      map.setZoom(getZoomLevelForRadius(radius));
     }
-  }, [map, center, radius]);
+  }, [map, center]);
+
+  // レストランマーカーがクリックされたときの処理
+  const handleMarkerClick = (restaurant: Restaurant) => {
+    setSelectedRestaurant(restaurant);
+    if (onMarkerClick) {
+      onMarkerClick(restaurant);
+    }
+  };
+
+  // 情報ウィンドウが閉じられたときの処理
+  const handleInfoWindowClose = () => {
+    setSelectedRestaurant(null);
+    if (onMarkerClick) {
+      onMarkerClick(null as unknown as Restaurant); // nullを渡して選択解除
+    }
+  };
 
   return (
     <>
@@ -101,16 +127,18 @@ function MapContent({
         if (!restaurant.lat || !restaurant.lng) return null;
 
         const position = { lat: restaurant.lat, lng: restaurant.lng };
+        const isSelected = selectedRestaurant?.id === restaurant.id;
 
         return (
           <div key={restaurant.id}>
             <AdvancedMarker
               position={position}
-              onClick={() => setSelectedRestaurant(restaurant)}
+              onClick={() => handleMarkerClick(restaurant)}
+              zIndex={isSelected ? 1001 : 1}
             >
               <RestaurantMarker
                 restaurant={restaurant}
-                isSelected={selectedRestaurant?.id === restaurant.id}
+                isSelected={isSelected}
               />
             </AdvancedMarker>
           </div>
@@ -124,7 +152,7 @@ function MapContent({
             lat: selectedRestaurant.lat,
             lng: selectedRestaurant.lng,
           }}
-          onCloseClick={() => setSelectedRestaurant(null)}
+          onCloseClick={handleInfoWindowClose}
           pixelOffset={[0, -40]}
           disableAutoPan={false}
         >
@@ -185,121 +213,5 @@ function MapContent({
         </InfoWindow>
       )}
     </>
-  );
-}
-
-export default function RestaurantMap({
-  restaurants,
-  searchCenter,
-  searchRadius,
-}: RestaurantMapProps) {
-  // 検索の中心位置を計算（未設定の場合は最初のレストランかデフォルト位置）
-  const center = searchCenter || 
-    (restaurants[0]?.lat && restaurants[0]?.lng 
-      ? { lat: restaurants[0].lat, lng: restaurants[0].lng }
-      : { lat: 35.681236, lng: 139.767125 }); // デフォルト: 東京駅
-  
-  // 検索範囲の半径（未設定の場合はデフォルト値）
-  const radius = searchRadius || 1000; // デフォルト: 1000m (1km)
-  
-  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
-  const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID as string;
-
-  if (!API_KEY) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-        <div className="py-12">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-16 w-16 mx-auto text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <h2 className="text-xl font-semibold text-gray-700 mt-4">
-            Google Maps APIキーが設定されていません
-          </h2>
-          <p className="text-gray-600 mt-2">
-            地図を表示するにはAPIキーの設定が必要です
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // レストランがない場合
-  if (!restaurants || restaurants.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-        <div className="py-12">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-16 w-16 mx-auto text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 className="text-xl font-semibold text-gray-700 mt-4">
-            表示できるレストランがありません
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="h-[calc(100vh-16rem)] min-h-[500px]">
-        <APIProvider apiKey={API_KEY}>
-          <Map
-            mapId={MAP_ID}
-            defaultZoom={getZoomLevelForRadius(radius)}
-            defaultCenter={center}
-            gestureHandling={"cooperative"}
-            disableDefaultUI={false}
-            mapTypeControl={false}
-            fullscreenControl={true}
-            streetViewControl={false}
-          >
-            <MapContent
-              center={center}
-              radius={radius}
-              restaurants={restaurants}
-            />
-          </Map>
-        </APIProvider>
-      </div>
-      
-      <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          <span className="font-medium">{restaurants.length}件</span>のレストランを地図上に表示しています
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-blue-600 rounded-full border border-white mr-1"></div>
-            <span className="text-xs text-gray-600">検索中心</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-orange-500 rounded-full border border-white mr-1"></div>
-            <span className="text-xs text-gray-600">レストラン</span>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

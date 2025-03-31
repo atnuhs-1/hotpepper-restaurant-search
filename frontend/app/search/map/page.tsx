@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { RestaurantSearchParams } from "@/types/search";
-import { fetchRestaurants } from "@/features/search/api";
-import SearchForm from "../../../features/search/components/SearchForm";
-import RestaurantMap from "../../../features/search/components/RestaurantMap";
+import Link from "next/link";
+import RestaurantMapContainer from "@/features/map/components/RestaurantMapContainer";
 
 export default async function SearchMapPage({
   searchParams,
@@ -15,31 +13,21 @@ export default async function SearchMapPage({
     resolvedSearchParams as Record<string, string>
   ).toString();
 
-  // サーバー側でデータを取得
-  const results = await fetchRestaurants(resolvedSearchParams);
-
-  // 検索の中心位置と半径の取得（地図表示用）
-  const searchCenter =
-    resolvedSearchParams.lat && resolvedSearchParams.lng
-      ? {
-          lat: parseFloat(resolvedSearchParams.lat),
-          lng: parseFloat(resolvedSearchParams.lng),
-        }
-      : undefined;
-
-  // 範囲コードから実際のメートル値に変換
+  // 範囲コードから実際のメートル値に変換（サーバー側で行う計算）
   const radiusMap: Record<string, number> = {
-    "1": 300, // 300m
-    "2": 500, // 500m
-    "3": 1000, // 1km
-    "4": 2000, // 2km
-    "5": 3000, // 3km
+    "1": 300, "2": 500, "3": 1000, "4": 2000, "5": 3000,
   };
+  const searchRadius = resolvedSearchParams.range && radiusMap[resolvedSearchParams.range]
+    ? radiusMap[resolvedSearchParams.range]
+    : 1000;
 
-  const searchRadius =
-    resolvedSearchParams.range && radiusMap[resolvedSearchParams.range]
-      ? radiusMap[resolvedSearchParams.range]
-      : 1000; // デフォルト1km
+  // 検索の中心位置
+  const searchCenter = resolvedSearchParams.lat && resolvedSearchParams.lng
+    ? {
+        lat: parseFloat(resolvedSearchParams.lat),
+        lng: parseFloat(resolvedSearchParams.lng),
+      }
+    : undefined;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -87,42 +75,27 @@ export default async function SearchMapPage({
           </div>
         </div>
 
-        {/* 2列レイアウト */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* 左側: 検索フォーム */}
-          <div className="md:w-1/4">
-            <SearchForm initialValues={resolvedSearchParams} />
+        {/* 地図コンテンツ部分 */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              地図で見る
+            </h1>
           </div>
-
-          {/* 右側: 地図表示 */}
-          <div className="md:w-3/4">
-            <Suspense
-              fallback={
-                <div className="bg-white rounded-lg shadow p-6 h-96 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-                </div>
-              }
-            >
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="mb-4">
-                  <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                    地図で見る
-                  </h1>
-                  <p className="text-gray-600">
-                    全 {results.results_available} 件中{" "}
-                    {Math.min(results.shop.length, results.results_available)}{" "}
-                    件を地図上に表示しています
-                  </p>
-                </div>
-
-                <RestaurantMap
-                  restaurants={results.shop || []}
-                  searchCenter={searchCenter}
-                  searchRadius={searchRadius}
-                />
+          
+          <Suspense
+            fallback={
+              <div className="bg-white rounded-lg shadow p-6 h-96 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
               </div>
-            </Suspense>
-          </div>
+            }
+          >
+            <RestaurantMapContainer 
+              initialSearchParams={resolvedSearchParams}
+              initialSearchCenter={searchCenter}
+              initialSearchRadius={searchRadius}
+            />
+          </Suspense>
         </div>
       </main>
     </div>

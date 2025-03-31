@@ -84,6 +84,8 @@ export async function fetchRestaurants(params: RestaurantSearchParams): Promise<
     
     const data = await res.json();
     const shop = data.results.shop?.[0] || null;
+
+    console.log(shop)
     
     if (!shop) {
       return null;

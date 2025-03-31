@@ -275,3 +275,7 @@ NearSearch
    - 地図表示範囲連動の検索機能
    - GoogleのPlaces APIを活用したレビュー表示
    - 移動時間・移動手段の表示
+
+- 今回のアプリ開発中に学んだこと等をZennのスクラップにメモしています
+
+https://zenn.dev/dashboard/scraps

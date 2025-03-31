@@ -5,5 +5,5 @@ export const getZoomLevelForRadius = (radiusInMeters: number) => {
     if (radiusInMeters <= 500) return 15;
     if (radiusInMeters <= 1000) return 15;
     if (radiusInMeters <= 2000) return 14;
-    return 13.5; // 3km以上
+    return 13; // 3km以上
   };

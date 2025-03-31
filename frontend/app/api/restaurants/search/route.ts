@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
-  const radius = searchParams.get('radius') || '3'; // デフォルト値: 3（3km）
+  const range = searchParams.get('range') || '3'; // デフォルト値: 3（3km）
   const start = searchParams.get('start') || '1'; // ページング用
   const count = searchParams.get('count') || '20'; // 1ページあたりの件数
   const genre = searchParams.get('genre') || '';
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     }
     
     // API URLのベース部分
-    let apiUrl = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${apiKey}&lat=${lat}&lng=${lng}&range=${radius}&start=${start}&count=${count}`;
+    let apiUrl = `https://webservice.recruit.co.jp/hotpepper/gourmet/v1/?key=${apiKey}&lat=${lat}&lng=${lng}&range=${range}&start=${start}&count=${count}`;
     
     // 基本条件パラメータを追加
     if (genre) apiUrl += `&genre=${genre}`;

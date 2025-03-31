@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Restaurant, SearchResults } from "../types/restaurant";
+import { Restaurant, SearchResults } from "../../types/search";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -83,11 +83,14 @@ export function useRestaurantSearch({
   } | null>(null);
 
   // フォーム値を外部から設定する関数
-  const setFormValues = useCallback((values: Partial<SearchFormInputs>) => {
-    Object.entries(values).forEach(([key, value]) => {
-      setValue(key as keyof SearchFormInputs, value);
-    });
-  }, [setValue]);
+  const setFormValues = useCallback(
+    (values: Partial<SearchFormInputs>) => {
+      Object.entries(values).forEach(([key, value]) => {
+        setValue(key as keyof SearchFormInputs, value);
+      });
+    },
+    [setValue]
+  );
 
   // クエリパラメータを更新する関数
   const updateQueryParams = useCallback(

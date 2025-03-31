@@ -9,7 +9,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { Circle } from "./Circle";
 import { useEffect, useState } from "react";
-import { Restaurant } from "@/app/types/restaurant";
+import { Restaurant } from "@/types/search";
 import { FiHome } from "react-icons/fi";
 import { MdRestaurant } from "react-icons/md";
 import Image from "next/image";

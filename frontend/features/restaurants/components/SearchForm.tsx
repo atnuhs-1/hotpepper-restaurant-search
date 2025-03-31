@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { UseFormRegister } from "react-hook-form";
 import { FiChevronDown, FiChevronUp, FiSearch } from "react-icons/fi";

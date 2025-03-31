@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FiMapPin, FiTag, FiChevronRight } from "react-icons/fi";
-import { Restaurant } from "../../types/restaurant";
+import { Restaurant } from "../../../types/search";
 import Image from "next/image";
 
 type RestaurantCardProps = {
@@ -9,16 +9,14 @@ type RestaurantCardProps = {
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   return (
-    <div
-      className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col"
-    >
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100 flex flex-col">
       {/* 画像部分 */}
       <div className="relative h-36 bg-gray-200">
         {restaurant.photo?.pc?.l && (
           <Image
             src={restaurant.photo.pc.l}
             alt={restaurant.name}
-            width={238}  // 実際のpc.l画像サイズ
+            width={238} // 実際のpc.l画像サイズ
             height={238}
             className="w-full h-full object-cover" // コンテナいっぱいに画像を表示し、アスペクト比を維持
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" // レスポンシブサイズ指定
@@ -52,9 +50,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           {restaurant.budget?.name && (
             <div className="flex items-start gap-1">
               <FiTag className="mt-0.5 min-w-4 text-gray-400" />
-              <span className="truncate">
-                {restaurant.budget.name}
-              </span>
+              <span className="truncate">{restaurant.budget.name}</span>
             </div>
           )}
         </div>

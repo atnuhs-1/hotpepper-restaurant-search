@@ -276,6 +276,8 @@ NearSearch
    - GoogleのPlaces APIを活用したレビュー表示
    - 移動時間・移動手段の表示
 
-- 今回のアプリ開発中に学んだこと等をZennのスクラップにメモしています
+***
 
-https://zenn.dev/dashboard/scraps
+簡易仕様書に書ききれなかったことや、アプリ開発中に学んだこと等をZennのスクラップにメモしています
+
+[レストラン検索アプリについて](https://zenn.dev/atnuhs/scraps/84e2a438615e1c)

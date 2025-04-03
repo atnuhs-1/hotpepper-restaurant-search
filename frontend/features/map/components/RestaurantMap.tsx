@@ -10,11 +10,12 @@ import MapFooter from '@/features/map/components/MapFooter';
 import MapSearchForm from '@/features/map/components/MapSearchForm';
 import RestaurantCardList from '@/features/map/components/RestaurantCardList';
 import { FiSearch, FiX, FiList } from "react-icons/fi";
+import { ZoomController } from './ZoomController';
 
 interface RestaurantMapProps {
   restaurants: Restaurant[];
-  searchCenter?: { lat: number; lng: number };
-  searchRadius?: number;
+  searchCenter: { lat: number; lng: number };
+  searchRadius: number;
   initialSearchParams?: RestaurantSearchParams;
   onSearchSubmit?: (params: RestaurantSearchParams) => void;
 }
@@ -33,6 +34,9 @@ export default function RestaurantMap({
   // 選択されたレストラン
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
 
+  // 検索条件が変更されたかどうか
+  const [searchConditionChanged, setSearchConditionChanged] = useState(false);
+
   // 検索の中心位置を計算（未設定の場合は最初のレストランかデフォルト位置）
   const center = searchCenter || 
     (restaurants[0]?.lat && restaurants[0]?.lng 
@@ -49,6 +53,12 @@ export default function RestaurantMap({
   const handleSearchSubmit = (values: RestaurantSearchParams) => {
     if (onSearchSubmit) {
       onSearchSubmit(values);
+      setSearchConditionChanged(true);
+      
+      // 検索条件変更フラグを短時間後にリセット（マップの更新が完了した後）
+      setTimeout(() => {
+        setSearchConditionChanged(false);
+      }, 1000);
     }
     // フォームを閉じる
     setShowSearchForm(false);
@@ -72,7 +82,7 @@ export default function RestaurantMap({
         <APIProvider apiKey={API_KEY}>
           <Map
             mapId={MAP_ID}
-            defaultZoom={getZoomLevelForRadius(radius)}
+            defaultZoom={getZoomLevelForRadius(searchRadius)}
             defaultCenter={center}
             gestureHandling={"greedy"}
             disableDefaultUI={false}
@@ -80,6 +90,12 @@ export default function RestaurantMap({
             fullscreenControl={true}
             streetViewControl={false}
           >
+            {/* ズームコントローラー - 検索条件が変更された場合のみズームを調整 */}
+            <ZoomController
+              searchRadius={radius} 
+              searchConditionChanged={searchConditionChanged} 
+            />
+
             {hasRestaurants ? (
               <MapContent
                 center={center}

@@ -51,3 +51,8 @@ export interface RestaurantSearchParams {
   page?: string;
   count?: string;
 }
+
+export interface Location {
+  lat: number;
+  lng: number;
+}

@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import Image from 'next/image';
+import Link from "next/link";
+import Image from "next/image";
 import { Restaurant } from "@/types/search";
 
 interface RestaurantInfoWindowProps {
@@ -11,7 +11,7 @@ const RestaurantInfoWindow = ({ restaurant }: RestaurantInfoWindowProps) => (
     <div className="font-semibold text-gray-800 mb-1 text-base">
       {restaurant.name}
     </div>
-    
+
     <div className="flex flex-wrap gap-1 mb-2">
       <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full">
         {restaurant.genre?.name}
@@ -22,7 +22,7 @@ const RestaurantInfoWindow = ({ restaurant }: RestaurantInfoWindowProps) => (
         </span>
       )}
     </div>
-    
+
     {restaurant.photo?.pc?.m && (
       <div className="relative w-full h-24 mb-2 rounded overflow-hidden">
         <Image
@@ -35,7 +35,7 @@ const RestaurantInfoWindow = ({ restaurant }: RestaurantInfoWindowProps) => (
         />
       </div>
     )}
-    
+
     <div className="text-xs text-gray-600 mb-2">
       <div className="flex items-start mb-1">
         <svg
@@ -53,7 +53,7 @@ const RestaurantInfoWindow = ({ restaurant }: RestaurantInfoWindowProps) => (
         <span>{restaurant.access}</span>
       </div>
     </div>
-    
+
     <Link
       href={`/restaurants/${restaurant.id}`}
       className="block text-center text-sm bg-orange-600 text-white py-1.5 px-3 rounded hover:bg-orange-700 transition-colors"

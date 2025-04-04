@@ -25,14 +25,17 @@ export default function MapFooter({
       <div className="flex flex-col sm:hidden space-y-2">
         <div className="text-xs text-gray-600 text-center">
           {noResults ? (
-            <span className="text-orange-600">検索条件を変更して再度お試しください</span>
+            <span className="text-orange-600">
+              検索条件を変更して再度お試しください
+            </span>
           ) : (
             <>
-              <span className="font-medium">{restaurantCount}件</span>のレストラン
+              <span className="font-medium">{restaurantCount}件</span>
+              のレストラン
             </>
           )}
         </div>
-        
+
         <div className="flex justify-center space-x-2">
           {/* 検索ボタン（オプション） */}
           {onSearchClick && (
@@ -50,8 +53,8 @@ export default function MapFooter({
             <button
               onClick={onListClick}
               className={`flex items-center text-xs px-3 py-1 rounded-md transition ${
-                isListVisible 
-                  ? "bg-orange-600 text-white hover:bg-orange-700" 
+                isListVisible
+                  ? "bg-orange-600 text-white hover:bg-orange-700"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -66,14 +69,17 @@ export default function MapFooter({
       <div className="hidden sm:flex justify-between items-center">
         <div className="text-sm text-gray-600">
           {noResults ? (
-            <span className="text-orange-600">検索条件を変更して再度お試しください</span>
+            <span className="text-orange-600">
+              検索条件を変更して再度お試しください
+            </span>
           ) : (
             <>
-              <span className="font-medium">{restaurantCount}件</span>のレストランを地図上に表示しています
+              <span className="font-medium">{restaurantCount}件</span>
+              のレストランを地図上に表示しています
             </>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-3">
           {/* ボタングループ */}
           <div className="flex items-center space-x-2">
@@ -93,8 +99,8 @@ export default function MapFooter({
               <button
                 onClick={onListClick}
                 className={`flex items-center text-xs px-3 py-1 rounded-md transition ${
-                  isListVisible 
-                    ? "bg-orange-600 text-white hover:bg-orange-700" 
+                  isListVisible
+                    ? "bg-orange-600 text-white hover:bg-orange-700"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -110,7 +116,7 @@ export default function MapFooter({
               ズーム: {zoom.toFixed(1)}
             </div>
           )}
-          
+
           {/* 凡例 */}
           <div className="flex items-center space-x-3 ml-3">
             <div className="flex items-center">

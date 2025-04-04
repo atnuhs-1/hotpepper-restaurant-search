@@ -25,12 +25,14 @@ export default function RestaurantCardList({
   const [showRightArrow, setShowRightArrow] = useState(true);
 
   // 選択されたレストランのインデックスを特定
-  const selectedIndex = restaurants.findIndex(r => r.id === selectedRestaurantId);
+  const selectedIndex = restaurants.findIndex(
+    (r) => r.id === selectedRestaurantId,
+  );
 
   // スクロール位置に基づいて矢印の表示/非表示を制御
   const checkScrollPosition = () => {
     if (!scrollContainerRef.current) return;
-    
+
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
     setShowLeftArrow(scrollLeft > 0);
     setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10); // 10pxの余裕を持たせる
@@ -39,36 +41,37 @@ export default function RestaurantCardList({
   // コンポーネントマウント時やrestaurantsが変更された時にスクロール状態をチェック
   useEffect(() => {
     checkScrollPosition();
-    
+
     // リサイズイベントリスナーを追加
     const handleResize = () => {
       checkScrollPosition();
     };
-    
-    window.addEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, [restaurants]);
 
   // 選択されたレストランが変更されたときにスクロール位置を調整
   useEffect(() => {
     if (selectedIndex >= 0 && scrollContainerRef.current) {
-      const cardElement = scrollContainerRef.current.children[selectedIndex] as HTMLElement;
+      const cardElement = scrollContainerRef.current.children[
+        selectedIndex
+      ] as HTMLElement;
       if (cardElement) {
         const containerWidth = scrollContainerRef.current.clientWidth;
         const cardWidth = cardElement.offsetWidth;
-        const scrollLeft = cardElement.offsetLeft - (containerWidth / 2) + (cardWidth / 2);
-        
+        const scrollLeft =
+          cardElement.offsetLeft - containerWidth / 2 + cardWidth / 2;
+
         scrollContainerRef.current.scrollTo({
           left: scrollLeft,
-          behavior: 'smooth'
+          behavior: "smooth",
         });
       }
     }
   }, [selectedIndex]);
-
-  
 
   // スクロールハンドラー
   const handleScroll = () => {
@@ -80,7 +83,7 @@ export default function RestaurantCardList({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
         left: -300,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -89,7 +92,7 @@ export default function RestaurantCardList({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
         left: 300,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -137,14 +140,16 @@ export default function RestaurantCardList({
           ref={scrollContainerRef}
           className="flex overflow-x-auto pb-2 pt-2 px-96 hide-scrollbar"
           onScroll={handleScroll}
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
               className={`flex-shrink-0 w-[clamp(180px,80vw,224px)] md:w-56 bg-white rounded-lg shadow-md mx-2 overflow-hidden transition-transform 
-                ${selectedRestaurantId === restaurant.id ? 'ring-2 ring-orange-600 scale-105' : 'hover:shadow-lg'}`}
-              onClick={() => onSelectRestaurant && onSelectRestaurant(restaurant)}
+                ${selectedRestaurantId === restaurant.id ? "ring-2 ring-orange-600 scale-105" : "hover:shadow-lg"}`}
+              onClick={() =>
+                onSelectRestaurant && onSelectRestaurant(restaurant)
+              }
             >
               {/* レストラン画像 */}
               <div className="relative w-full h-24">
@@ -165,8 +170,10 @@ export default function RestaurantCardList({
 
               {/* レストラン情報 */}
               <div className="p-2">
-                <h3 className="font-medium text-gray-800 mb-0.5 text-sm line-clamp-1">{restaurant.name}</h3>
-                
+                <h3 className="font-medium text-gray-800 mb-0.5 text-sm line-clamp-1">
+                  {restaurant.name}
+                </h3>
+
                 <div className="flex flex-wrap gap-1 mb-1">
                   {restaurant.genre?.name && (
                     <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-800 rounded-full whitespace-nowrap">
@@ -179,11 +186,11 @@ export default function RestaurantCardList({
                     </span>
                   )}
                 </div>
-                
+
                 <p className="text-xs text-gray-600 mb-1.5 line-clamp-1">
                   {restaurant.access || restaurant.address}
                 </p>
-                
+
                 <Link
                   href={`/restaurants/${restaurant.id}`}
                   className="block text-center text-xs bg-orange-600 text-white py-1 px-2 rounded hover:bg-orange-700 transition-colors"

@@ -73,7 +73,7 @@ export default function SearchForm({ initialValues }: SearchFormProps) {
         switch (error.code) {
           case error.PERMISSION_DENIED:
             setErrorMessage(
-              "位置情報の取得が許可されていません。ブラウザの設定をご確認ください。"
+              "位置情報の取得が許可されていません。ブラウザの設定をご確認ください。",
             );
             break;
           case error.POSITION_UNAVAILABLE:
@@ -91,13 +91,13 @@ export default function SearchForm({ initialValues }: SearchFormProps) {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
-      }
+      },
     );
   };
 
   // フォーム入力の処理
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -113,7 +113,7 @@ export default function SearchForm({ initialValues }: SearchFormProps) {
     // 位置情報が未取得の場合は検索できない
     if (!formData.lat || !formData.lng) {
       setErrorMessage(
-        "検索には位置情報が必要です。「現在地を取得」を押してください。"
+        "検索には位置情報が必要です。「現在地を取得」を押してください。",
       );
       return;
     }
@@ -140,7 +140,7 @@ export default function SearchForm({ initialValues }: SearchFormProps) {
     newParams.append("page", "1");
 
     // 現在のパスに基づいてリダイレクト先を決定
-    const targetPath = pathname.includes('/map') ? '/search/map' : '/search';
+    const targetPath = pathname.includes("/map") ? "/search/map" : "/search";
 
     // 検索を実行
     router.push(`${targetPath}?${newParams.toString()}`);
@@ -236,7 +236,7 @@ export default function SearchForm({ initialValues }: SearchFormProps) {
                     "px-3 py-1 rounded-full text-sm",
                     formData.genre === genre.code
                       ? "bg-orange-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200",
                   )}
                 >
                   {genre.name}

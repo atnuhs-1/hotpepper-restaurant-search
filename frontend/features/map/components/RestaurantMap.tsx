@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from 'react';
-import { APIProvider, Map, MapControl, ControlPosition } from "@vis.gl/react-google-maps";
+import { useState } from "react";
+import {
+  APIProvider,
+  Map,
+  MapControl,
+  ControlPosition,
+} from "@vis.gl/react-google-maps";
 import { Restaurant, RestaurantSearchParams } from "@/types/search";
 import { getZoomLevelForRadius } from "@/features/map/utils/map";
-import MapContent from '@/features/map/components/MapContent';
-import MapError from '@/features/map/components/MapError';
-import MapFooter from '@/features/map/components/MapFooter';
-import MapSearchForm from '@/features/map/components/MapSearchForm';
-import RestaurantCardList from '@/features/map/components/RestaurantCardList';
+import MapContent from "@/features/map/components/MapContent";
+import MapError from "@/features/map/components/MapError";
+import MapFooter from "@/features/map/components/MapFooter";
+import MapSearchForm from "@/features/map/components/MapSearchForm";
+import RestaurantCardList from "@/features/map/components/RestaurantCardList";
 import { FiSearch, FiX, FiList } from "react-icons/fi";
-import { ZoomController } from './ZoomController';
+import { ZoomController } from "./ZoomController";
 
 interface RestaurantMapProps {
   restaurants: Restaurant[];
@@ -32,20 +37,22 @@ export default function RestaurantMap({
   // カードリストの表示状態
   const [showCardList, setShowCardList] = useState(false);
   // 選択されたレストラン
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<Restaurant | null>(null);
 
   // 検索条件が変更されたかどうか
   const [searchConditionChanged, setSearchConditionChanged] = useState(false);
 
   // 検索の中心位置を計算（未設定の場合は最初のレストランかデフォルト位置）
-  const center = searchCenter || 
-    (restaurants[0]?.lat && restaurants[0]?.lng 
+  const center =
+    searchCenter ||
+    (restaurants[0]?.lat && restaurants[0]?.lng
       ? { lat: restaurants[0].lat, lng: restaurants[0].lng }
       : { lat: 35.681236, lng: 139.767125 }); // デフォルト: 東京駅
-  
+
   // 検索範囲の半径（未設定の場合はデフォルト値）
   const radius = searchRadius || 1000; // デフォルト: 1000m (1km)
-  
+
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
   const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID as string;
 
@@ -54,7 +61,7 @@ export default function RestaurantMap({
     if (onSearchSubmit) {
       onSearchSubmit(values);
       setSearchConditionChanged(true);
-      
+
       // 検索条件変更フラグを短時間後にリセット（マップの更新が完了した後）
       setTimeout(() => {
         setSearchConditionChanged(false);
@@ -92,8 +99,8 @@ export default function RestaurantMap({
           >
             {/* ズームコントローラー - 検索条件が変更された場合のみズームを調整 */}
             <ZoomController
-              searchRadius={radius} 
-              searchConditionChanged={searchConditionChanged} 
+              searchRadius={radius}
+              searchConditionChanged={searchConditionChanged}
             />
 
             {hasRestaurants ? (
@@ -130,12 +137,12 @@ export default function RestaurantMap({
                 </div>
               </MapControl>
             )}
-            
+
             {/* 検索ボタン - 左上に配置 */}
             <MapControl position={ControlPosition.TOP_LEFT}>
               <div className="m-2 z-50">
                 {!showSearchForm ? (
-                  <button 
+                  <button
                     onClick={() => setShowSearchForm(true)}
                     className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition-colors flex items-center text-sm"
                     aria-label="検索フォームを開く"
@@ -144,7 +151,7 @@ export default function RestaurantMap({
                     <span className="text-gray-700">検索条件を変更</span>
                   </button>
                 ) : (
-                  <button 
+                  <button
                     onClick={() => setShowSearchForm(false)}
                     className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition-colors"
                     aria-label="検索フォームを閉じる"
@@ -154,28 +161,30 @@ export default function RestaurantMap({
                 )}
               </div>
             </MapControl>
-            
+
             {/* リスト表示ボタン - 右上に配置 */}
             {hasRestaurants && (
               <MapControl position={ControlPosition.TOP_RIGHT}>
                 <div className="m-2 z-50">
-                  <button 
+                  <button
                     onClick={() => setShowCardList(!showCardList)}
                     className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition-colors flex items-center text-sm"
                     aria-label={showCardList ? "リストを閉じる" : "リスト表示"}
                   >
                     <FiList className="text-gray-700 mr-1" size={16} />
-                    <span className="text-gray-700">{showCardList ? "リストを閉じる" : "リスト表示"}</span>
+                    <span className="text-gray-700">
+                      {showCardList ? "リストを閉じる" : "リスト表示"}
+                    </span>
                   </button>
                 </div>
               </MapControl>
             )}
-            
+
             {/* 検索フォーム - 表示/非表示を切り替え */}
             {showSearchForm && (
               <MapControl position={ControlPosition.TOP_LEFT}>
                 <div className="m-2 z-50">
-                  <MapSearchForm 
+                  <MapSearchForm
                     initialValues={initialSearchParams}
                     onSubmit={handleSearchSubmit}
                     onClose={() => setShowSearchForm(false)}
@@ -183,10 +192,10 @@ export default function RestaurantMap({
                 </div>
               </MapControl>
             )}
-            
+
             {/* レストランカードリスト - 下部に表示 */}
             {showCardList && hasRestaurants && (
-              <RestaurantCardList 
+              <RestaurantCardList
                 restaurants={restaurants}
                 selectedRestaurantId={selectedRestaurant?.id}
                 onSelectRestaurant={handleSelectRestaurant}
@@ -196,9 +205,9 @@ export default function RestaurantMap({
           </Map>
         </APIProvider>
       </div>
-      
-      <MapFooter 
-        restaurantCount={hasRestaurants ? restaurants.length : 0} 
+
+      <MapFooter
+        restaurantCount={hasRestaurants ? restaurants.length : 0}
         onSearchClick={() => setShowSearchForm(!showSearchForm)}
         noResults={!hasRestaurants}
         onListClick={() => setShowCardList(!showCardList)}

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface PaginationProps {
   currentPage: number;
@@ -8,27 +8,31 @@ interface PaginationProps {
   baseUrl: string;
 }
 
-export default function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps) {
+export default function Pagination({
+  currentPage,
+  totalPages,
+  baseUrl,
+}: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // ページ変更ハンドラー
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     // 新しいページをセット
-    const newStart = ((page - 1) * 20) + 1;
-    params.set('start', newStart.toString());
-    
+    const newStart = (page - 1) * 20 + 1;
+    params.set("start", newStart.toString());
+
     // URLを更新
     router.push(`${baseUrl}?${params.toString()}`);
   };
-  
+
   // 表示するページ番号を生成
   const getPageNumbers = () => {
     const pageNumbers: number[] = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       // 全ページ数が表示上限以下の場合はすべて表示
       for (let i = 1; i <= totalPages; i++) {
@@ -38,27 +42,27 @@ export default function Pagination({ currentPage, totalPages, baseUrl }: Paginat
       // 現在のページを中心にして表示
       let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
       let endPage = startPage + maxPagesToShow - 1;
-      
+
       if (endPage > totalPages) {
         endPage = totalPages;
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
     }
-    
+
     return pageNumbers;
   };
-  
+
   const pageNumbers = getPageNumbers();
-  
+
   // ページネーションが必要ない場合
   if (totalPages <= 1) {
     return null;
   }
-  
+
   return (
     <nav className="inline-flex rounded-md shadow-sm -space-x-px">
       <button

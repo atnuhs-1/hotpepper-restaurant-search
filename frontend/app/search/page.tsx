@@ -12,7 +12,7 @@ export default async function SearchPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const searchParamsString = new URLSearchParams(
-    resolvedSearchParams as Record<string, string>
+    resolvedSearchParams as Record<string, string>,
   ).toString();
 
   return (

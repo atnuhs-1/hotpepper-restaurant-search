@@ -10,24 +10,30 @@ export default async function SearchMapPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const searchParamsString = new URLSearchParams(
-    resolvedSearchParams as Record<string, string>
+    resolvedSearchParams as Record<string, string>,
   ).toString();
 
   // 範囲コードから実際のメートル値に変換（サーバー側で行う計算）
   const radiusMap: Record<string, number> = {
-    "1": 300, "2": 500, "3": 1000, "4": 2000, "5": 3000,
+    "1": 300,
+    "2": 500,
+    "3": 1000,
+    "4": 2000,
+    "5": 3000,
   };
-  const searchRadius = resolvedSearchParams.range && radiusMap[resolvedSearchParams.range]
-    ? radiusMap[resolvedSearchParams.range]
-    : 1000;
+  const searchRadius =
+    resolvedSearchParams.range && radiusMap[resolvedSearchParams.range]
+      ? radiusMap[resolvedSearchParams.range]
+      : 1000;
 
   // 検索の中心位置
-  const searchCenter = resolvedSearchParams.lat && resolvedSearchParams.lng
-    ? {
-        lat: parseFloat(resolvedSearchParams.lat),
-        lng: parseFloat(resolvedSearchParams.lng),
-      }
-    : undefined;
+  const searchCenter =
+    resolvedSearchParams.lat && resolvedSearchParams.lng
+      ? {
+          lat: parseFloat(resolvedSearchParams.lat),
+          lng: parseFloat(resolvedSearchParams.lng),
+        }
+      : undefined;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,9 +41,7 @@ export default async function SearchMapPage({
         {/* 地図コンテンツ部分 */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="mb-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-800">
-              地図で見る
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-800">地図で見る</h1>
 
             {/* リスト表示へのリンク */}
             <Link
@@ -59,7 +63,7 @@ export default async function SearchMapPage({
               リストで見る
             </Link>
           </div>
-          
+
           <Suspense
             fallback={
               <div className="bg-white rounded-lg shadow p-6 h-96 flex items-center justify-center">
@@ -67,7 +71,7 @@ export default async function SearchMapPage({
               </div>
             }
           >
-            <RestaurantMapContainer 
+            <RestaurantMapContainer
               initialSearchParams={resolvedSearchParams}
               initialSearchCenter={searchCenter}
               initialSearchRadius={searchRadius}

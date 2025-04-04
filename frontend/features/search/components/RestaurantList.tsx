@@ -1,6 +1,6 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { Restaurant } from '@/types/search';
+import Image from "next/image";
+import Link from "next/link";
+import { Restaurant } from "@/types/search";
 
 interface RestaurantListProps {
   restaurants: Restaurant[];
@@ -44,9 +44,7 @@ export default function RestaurantList({ restaurants }: RestaurantListProps) {
                 )}
               </div>
 
-              <p className="text-gray-600 mb-2">
-                {restaurant.catch}
-              </p>
+              <p className="text-gray-600 mb-2">{restaurant.catch}</p>
 
               <div className="flex items-start mb-2">
                 <svg
@@ -61,9 +59,7 @@ export default function RestaurantList({ restaurants }: RestaurantListProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-gray-600">
-                  {restaurant.access}
-                </span>
+                <span className="text-gray-600">{restaurant.access}</span>
               </div>
 
               <div className="flex items-start">
@@ -79,9 +75,7 @@ export default function RestaurantList({ restaurants }: RestaurantListProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-gray-600">
-                  {restaurant.open}
-                </span>
+                <span className="text-gray-600">{restaurant.open}</span>
               </div>
             </div>
           </div>

@@ -8,10 +8,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "imgfp.hotp.jp",
         port: "",
-        pathname: "/**"
+        pathname: "/**",
       },
-    ]
-  }
+    ],
+  },
 };
 
 export default nextConfig;

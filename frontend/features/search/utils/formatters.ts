@@ -7,7 +7,7 @@ export const RANGE_LABELS: Record<string, string> = {
   "2": "500m圏内",
   "3": "1km圏内",
   "4": "2km圏内",
-  "5": "3km圏内"
+  "5": "3km圏内",
 };
 
 /**
@@ -15,12 +15,12 @@ export const RANGE_LABELS: Record<string, string> = {
  */
 export function getSearchSummary(searchParams: RestaurantSearchParams): string {
   const parts: string[] = ["現在地周辺"];
-  
+
   // 検索範囲
   if (searchParams.range && RANGE_LABELS[searchParams.range]) {
     parts[0] = `現在地から${RANGE_LABELS[searchParams.range]}`;
   }
-  
+
   // ジャンル
   if (searchParams.genre) {
     const genreName = getGenreName(searchParams.genre);
@@ -28,11 +28,11 @@ export function getSearchSummary(searchParams: RestaurantSearchParams): string {
       parts.push(genreName);
     }
   }
-  
+
   // キーワード
   if (searchParams.keyword) {
     parts.push(`「${searchParams.keyword}」`);
   }
-  
-  return `${parts.join('の')}のレストランを表示しています`;
+
+  return `${parts.join("の")}のレストランを表示しています`;
 }

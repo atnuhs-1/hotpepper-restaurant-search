@@ -14,10 +14,10 @@ interface MapSearchFormProps {
 
 type LocationStatus = "idle" | "loading" | "success" | "error";
 
-export default function MapSearchForm({ 
+export default function MapSearchForm({
   initialValues,
   onSubmit,
-  onClose 
+  onClose,
 }: MapSearchFormProps) {
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -75,9 +75,7 @@ export default function MapSearchForm({
         setLocationStatus("error");
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            setErrorMessage(
-              "位置情報の取得が許可されていません。"
-            );
+            setErrorMessage("位置情報の取得が許可されていません。");
             break;
           case error.POSITION_UNAVAILABLE:
             setErrorMessage("現在の位置情報が取得できませんでした。");
@@ -94,13 +92,13 @@ export default function MapSearchForm({
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
-      }
+      },
     );
   };
 
   // フォーム入力の処理
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -115,9 +113,7 @@ export default function MapSearchForm({
 
     // 位置情報が未取得の場合は検索できない
     if (!formData.lat || !formData.lng) {
-      setErrorMessage(
-        "検索には位置情報が必要です。"
-      );
+      setErrorMessage("検索には位置情報が必要です。");
       return;
     }
 
@@ -129,7 +125,9 @@ export default function MapSearchForm({
   const popularGenres = GENRES.slice(0, 8);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-3 max-w-xs w-full overflow-y-auto max-h-[calc(100vh-120px)] relative z-50"> {/* z-indexを高く設定 */}
+    <div className="bg-white rounded-lg shadow-md p-3 max-w-xs w-full overflow-y-auto max-h-[calc(100vh-120px)] relative z-50">
+      {" "}
+      {/* z-indexを高く設定 */}
       {/* ヘッダー部分 */}
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
         <h3 className="text-sm font-medium text-gray-700">検索条件</h3>
@@ -144,11 +142,12 @@ export default function MapSearchForm({
           </button>
         )}
       </div>
-
       {/* 位置情報ボタン */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-xs font-medium text-gray-700">位置情報</label>
+          <label className="block text-xs font-medium text-gray-700">
+            位置情報
+          </label>
           <button
             type="button"
             onClick={getCurrentLocation}
@@ -165,7 +164,8 @@ export default function MapSearchForm({
             <FiMapPin className="mr-1" size={14} />
             <span>
               現在地周辺
-              {rangeOptions.find((opt) => opt.value === formData.range)?.label || "1km"}
+              {rangeOptions.find((opt) => opt.value === formData.range)
+                ?.label || "1km"}
               圏内
             </span>
           </div>
@@ -177,7 +177,6 @@ export default function MapSearchForm({
           </div>
         )}
       </div>
-
       <form onSubmit={handleFilterSubmit} className="text-xs">
         <div className="space-y-3">
           {/* 検索範囲 */}
@@ -239,7 +238,7 @@ export default function MapSearchForm({
                 )}
               </button>
             </div>
-            
+
             {/* 人気ジャンルのボタン */}
             <div className="flex flex-wrap gap-1 mb-1">
               {popularGenres.map((genre) => (
@@ -253,14 +252,14 @@ export default function MapSearchForm({
                     "px-2 py-0.5 rounded-full text-xs",
                     formData.genre === genre.code
                       ? "bg-orange-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200",
                   )}
                 >
                   {genre.name}
                 </button>
               ))}
             </div>
-            
+
             {/* 展開時に表示されるセレクトボックス */}
             {isGenreExpanded && (
               <select

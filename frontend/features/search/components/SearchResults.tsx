@@ -11,7 +11,7 @@ export default async function SearchResults({
 }) {
   // サーバーサイドでデータ取得
   const results = await fetchRestaurants(searchParams);
-  
+
   // 結果が空の場合
   if (!results.shop || results.shop.length === 0) {
     return (
@@ -62,7 +62,7 @@ export default async function SearchResults({
           全 {results_available} 件中 {results_start}〜
           {Math.min(
             Number(results_start) + Number(results_returned) - 1,
-            results_available
+            results_available,
           )}{" "}
           件を表示
         </p>

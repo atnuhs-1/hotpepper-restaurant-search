@@ -89,7 +89,7 @@ export function useRestaurantSearch({
         setValue(key as keyof SearchFormInputs, value);
       });
     },
-    [setValue]
+    [setValue],
   );
 
   // クエリパラメータを更新する関数
@@ -133,7 +133,7 @@ export function useRestaurantSearch({
 
       router.push(`?${params.toString()}`, { scroll: false });
     },
-    [searchParams, router]
+    [searchParams, router],
   );
 
   // 検索を実行
@@ -141,7 +141,7 @@ export function useRestaurantSearch({
     async (
       page: number = pageFromUrl,
       overrideLocation?: Location,
-      formData?: SearchFormInputs
+      formData?: SearchFormInputs,
     ) => {
       // 使用する位置情報（オーバーライドか現在の状態）
       const locationToUse = overrideLocation || location;
@@ -203,7 +203,7 @@ export function useRestaurantSearch({
         setIsLoading(false);
       }
     },
-    [location, formValues, perPage, updateQueryParams, pageFromUrl]
+    [location, formValues, perPage, updateQueryParams, pageFromUrl],
   );
 
   // フォーム送信ハンドラ
@@ -242,7 +242,7 @@ export function useRestaurantSearch({
 
     return Array.from(
       { length: endPage - startPage + 1 },
-      (_, i) => startPage + i
+      (_, i) => startPage + i,
     );
   }, [totalPages, pageFromUrl]);
 

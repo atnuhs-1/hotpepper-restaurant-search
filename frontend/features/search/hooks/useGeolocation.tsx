@@ -12,7 +12,9 @@ interface UseGeolocationOptions {
   loadFromUrl?: boolean; // URLからロードするかのオプション
 }
 
-export function useGeolocation(options: UseGeolocationOptions = { loadFromUrl: false }) {
+export function useGeolocation(
+  options: UseGeolocationOptions = { loadFromUrl: false },
+) {
   const searchParams = useSearchParams();
   const [location, setLocation] = useState<Location>({ lat: null, lng: null });
   const [isLoading, setIsLoading] = useState(false);
@@ -24,12 +26,12 @@ export function useGeolocation(options: UseGeolocationOptions = { loadFromUrl: f
     if (options.loadFromUrl) {
       const latParam = searchParams.get("lat");
       const lngParam = searchParams.get("lng");
-      
+
       if (latParam && lngParam) {
         try {
           const lat = parseFloat(latParam);
           const lng = parseFloat(lngParam);
-          
+
           // 有効な数値かチェック
           if (!isNaN(lat) && !isNaN(lng)) {
             setLocation({ lat, lng });
@@ -47,7 +49,7 @@ export function useGeolocation(options: UseGeolocationOptions = { loadFromUrl: f
     setLocation(newLocation);
     setIsLocationAvailable(true);
     setError(null);
-  }
+  };
 
   // 現在地を取得
   const getCurrentLocation = (onSuccess?: (location: Location) => void) => {
@@ -89,7 +91,7 @@ export function useGeolocation(options: UseGeolocationOptions = { loadFromUrl: f
             setError("位置情報の取得中に問題が発生しました");
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   };
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RestaurantSearchParams, Restaurant } from "@/types/search";
-import { fetchRestaurants } from "@/features/map/api";
+import { fetchRestaurantsForMap } from "@/features/map/api";
 import RestaurantMap from "@/features/map/components/RestaurantMap";
 
 interface RestaurantMapContainerProps {
@@ -45,7 +45,7 @@ export default function RestaurantMapContainer({
         lng: params.lng || DEFAULT_CENTER.lng.toString(),
       };
 
-      const results = await fetchRestaurants(searchParamsWithLocation);
+      const results = await fetchRestaurantsForMap(searchParamsWithLocation);
       setRestaurants(results.shop || []);
       setTotalCount(results.results_available);
     } catch (error) {
@@ -183,7 +183,7 @@ export default function RestaurantMapContainer({
           "データを取得中..."
         ) : restaurants.length > 0 ? (
           <>
-            全 {totalCount} 件中 {restaurants.length} 件を地図上に表示しています
+            検索範囲内の {totalCount} 件すべてを地図上に表示しています
           </>
         ) : (
           <>検索条件に一致するレストランが見つかりませんでした</>

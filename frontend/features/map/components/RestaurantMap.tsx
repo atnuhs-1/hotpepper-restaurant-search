@@ -98,10 +98,12 @@ export default function RestaurantMap({
             streetViewControl={false}
           >
             {/* ズームコントローラー - 検索条件が変更された場合のみズームを調整 */}
-            <ZoomController
-              searchRadius={radius}
-              searchConditionChanged={searchConditionChanged}
-            />
+              <ZoomController
+                restaurants={restaurants}
+                searchCenter={center}
+                searchRadius={radius}
+                searchConditionChanged={searchConditionChanged}
+              />
 
             {hasRestaurants ? (
               <MapContent
